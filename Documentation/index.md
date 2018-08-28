@@ -221,7 +221,7 @@ Distributions <distributions.md>
 Technotes <technotes/index.md>
 Internal APIs & Configuration <internals/index.md>
 ACPI <acpi/index.md>
-Native Graphics Initialization with libgfxinit <gfx/libgfxinit.md>
+Graphics initialization <gfx/index.md>
 Display panel <gfx/display-panel.md>
 CPU Architecture <arch/index.md>
 Platform independent drivers <drivers/index.md>
