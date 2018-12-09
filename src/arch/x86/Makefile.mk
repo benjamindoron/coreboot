@@ -158,6 +158,8 @@ romstage-$(CONFIG_DEBUG_STACK_OVERFLOW_BREAKPOINTS_IN_ALL_STAGES) += stack_canar
 romstage-y += postcar_loader.c
 romstage-$(CONFIG_COLLECT_TIMESTAMPS_TSC) += timestamp.c
 romstage-$(CONFIG_HAVE_CF9_RESET) += cf9_reset.c
+romstage-$(CONFIG_ARCH_ALL_STAGES_X86_64) += mmu.c
+romstage-$(CONFIG_ARCH_ROMSTAGE_X86_64) += mmu-romstage.c
 romstage-$(CONFIG_COOP_MULTITASKING) += thread.c
 ifeq ($(CONFIG_COOP_MULTITASKING),y)
 romstage-$(CONFIG_ARCH_ROMSTAGE_X86_32) += thread_switch_32.S
@@ -258,6 +260,8 @@ endif # CONFIG_COOP_MULTITASKING
 ramstage-$(CONFIG_COLLECT_TIMESTAMPS_TSC) += timestamp.c
 ramstage-$(CONFIG_HAVE_ACPI_RESUME) += wakeup.S
 ramstage-$(CONFIG_HAVE_CF9_RESET) += cf9_reset.c
+ramstage-$(CONFIG_ARCH_ALL_STAGES_X86_64) += mmu.c
+ramstage-$(CONFIG_ARCH_RAMSTAGE_X86_64) += mmu-ramstage.c
 
 rmodules_x86_32-y += memcpy.c
 rmodules_x86_32-y += memmove_32.c

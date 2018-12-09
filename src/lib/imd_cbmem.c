@@ -8,6 +8,9 @@
 #include <imd.h>
 #include <lib.h>
 #include <types.h>
+#if ENV_X86_64
+#include <arch/mmu.h>
+#endif
 
 /* The program loader passes on cbmem_top and the program entry point
    has to fill in the _cbmem_top_ptr symbol based on the calling arguments. */
@@ -52,6 +55,11 @@ static void cbmem_top_init_once(void)
 	/* Call one-time hook on expected cbmem init during boot. */
 	if (!ENV_CREATES_CBMEM)
 		return;
+
+#if ENV_X86_64
+	/* Make cbmem visible in page tables */
+	mmu_init_pre_cbmem();
+#endif
 
 	/* The test is only effective on X86 and when address hits UC memory. */
 	if (ENV_X86)
