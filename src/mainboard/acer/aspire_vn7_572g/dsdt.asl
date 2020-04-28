@@ -49,6 +49,7 @@ DefinitionBlock(
 		#include <soc/intel/skylake/acpi/systemagent.asl>
 		#include <soc/intel/skylake/acpi/pch.asl>
 		#include "acpi/brightness_levels.asl"
+		#include "acpi/optimus_mb.asl"
 	}
 
 	#include "acpi/mainboard.asl"
