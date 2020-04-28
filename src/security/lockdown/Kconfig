@@ -73,6 +73,23 @@ config BOOTMEDIA_LOCK_WPRO_VBOOT_RO
 	  is either triggered by coreboot (when INTEL_CHIPSET_LOCKDOWN is set) or
 	  has to be triggered later (e.g. by the payload or the OS).
 
+config BOOTMEDIA_LOCK_COREBOOT_FMAP_RO
+	depends on BOOTMEDIA_LOCK_CONTROLLER
+	bool "Write-protect COREBOOT and FMAP region in boot medium"
+	help
+	  Select this if you want to write-protect the COREBOOT and FMAP region
+	  as specified in the FMAP. You will be able to write every region outside
+	  of COREBOOT and FMAP using the internal controller (eg. SMM_STORE).
+
+	  The locking will take place during the chipset lockdown.
+	  Chipset lockdown is platform specific und might be done unconditionally,
+	  when INTEL_CHIPSET_LOCKDOWN is set or has to be triggered later
+	  (e.g. by the payload or the OS).
+
+	  NOTE: If you trigger the chipset lockdown unconditionally,
+	  you won't be able to write to update coreboot using the internal
+	  controller any more.
+
 endchoice
 
 config BOOTMEDIA_LOCK_IN_VERSTAGE
