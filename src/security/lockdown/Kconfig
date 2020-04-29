@@ -128,3 +128,13 @@ config BOOTMEDIA_SPI_LOCK_PERMANENT
 	  Supported by Winbond parts.
 
 endchoice
+
+config BOOTMEDIA_SMM_BWP
+	bool "Boot media only writable in SMM"
+	depends on ARCH_X86
+	depends on HAVE_SMI_HANDLER
+	select SOC_INTEL_COMMON_BLOCK_SMM_TCO_ENABLE if SOC_INTEL_COMMON_BLOCK
+	help
+	  Enable flash writes in SMM only. Select this if you want to secure
+	  the SMM_STORE and don't need to update coreboot using the
+	  internal controller.
