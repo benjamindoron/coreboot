@@ -4,6 +4,7 @@
 #include <device/device.h>
 #include <smbios.h>
 #include <string.h>
+#include <uuid.h>
 
 #define MAX_SERIAL_LENGTH 0x100
 
@@ -35,4 +36,26 @@ const char *smbios_mainboard_serial_number(void)
 			MAX_SERIAL_LENGTH);
 
 	return serial_number;
+}
+
+void smbios_system_set_uuid(u8 *uuid)
+{
+	static char system_uuid[UUID_STRLEN + 1] = {0};
+	struct cbfsf file;
+
+	if (cbfs_boot_locate(&file, "system_uuid", NULL) == 0) {
+		struct region_device cbfs_region;
+		size_t uuid_len;
+
+		cbfs_file_data(&cbfs_region, &file);
+
+		uuid_len = region_device_sz(&cbfs_region);
+		if (uuid_len == sizeof(system_uuid) - 1) {
+			if (rdev_readat(&cbfs_region, system_uuid, 0,
+					uuid_len) == uuid_len) {
+				system_uuid[uuid_len] = 0;
+				parse_uuid(uuid, system_uuid);
+			}
+		}
+	}
 }

@@ -2,5 +2,8 @@ config DRIVERS_GENERIC_CBFS_SERIAL
 	bool "Serial number in CBFS"
 	default n
 	help
-	  Enable this option to read the board serial number from a
-	  text file located in CBFS.
+	  Enable this option to read the board serial number or
+	  system UUID from a text file located in CBFS. The text
+	  file should be named serial_number or system_uuid
+	  respectively and include only the serial number or
+	  UUID (with dashes) with no newline characters.
