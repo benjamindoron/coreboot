@@ -33,6 +33,7 @@ static struct control_area {
 	void *response_bfr;
 } control_area;
 
+static uint8_t cap_idlebypass;
 static uint8_t cur_loc = 0;
 
 /* Read Control Area Structure back  */
@@ -96,6 +97,8 @@ static int crb_probe(void)
 		write32(CRB_REG(cur_loc, CRB_REG_INTF_ID), CRB_INTF_REG_INTF_SEL);
 		return -1;
 	}
+
+	cap_idlebypass = tpmStatus & CRB_INTF_REG_CAP_IDLBYP;
 
 	write32(CRB_REG(cur_loc, CRB_REG_INTF_ID), CRB_INTF_REG_INTF_SEL);
 	write32(CRB_REG(cur_loc, CRB_REG_INTF_ID), CRB_INTF_REG_INTF_LOCK);
@@ -216,6 +219,13 @@ size_t tpm2_process_command(const void *tpm2_command, size_t command_size, void 
 		return -1;
 	}
 
+	if (!cap_idlebypass && (read8(CRB_REG(cur_loc, CRB_REG_STATUS)) & CRB_REG_STATUS_IDLE) == 0) {
+		rc = crb_wait_for_reg32(CRB_REG(cur_loc, CRB_REG_STATUS), 250, CRB_REG_STATUS_IDLE,
+					CRB_REG_STATUS_IDLE);
+		if (rc)
+			printk(BIOS_ERR, "TPM: Non-IdleBypass TPM left in Ready state, violates PTP spec\n");
+	}
+
 	if (crb_switch_to_ready())
 		return -1;
 
@@ -249,9 +259,13 @@ size_t tpm2_process_command(const void *tpm2_command, size_t command_size, void 
 	// Copy Response
 	memcpy(tpm2_response, control_area.response_bfr, length);
 
-	if (crb_switch_to_ready()) {
-		printk(BIOS_DEBUG, "TPM: Can not transition into ready state again.\n");
-		return -1;
+	if (cap_idlebypass) {
+		if (crb_switch_to_ready()) {
+			printk(BIOS_DEBUG, "TPM: Can not transition into ready state again.\n");
+			return -1;
+		}
+	} else {
+		write8(CRB_REG(cur_loc, CRB_REG_REQUEST), CRB_REG_REQUEST_GO_IDLE);
 	}
 
 	return length;
