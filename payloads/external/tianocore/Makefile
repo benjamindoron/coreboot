@@ -59,7 +59,7 @@ update: $(project_dir)
 		git fetch --multiple origin upstream 2>/dev/null; \
 		if ! git rev-parse --verify -q $(TAG) >/dev/null; then \
 			echo "    $(TAG) is not a valid git reference"; \
-			exit 1; \
+#			exit 1; \
 		fi; \
 		if git status --ignore-submodules=dirty | grep -qv clean; then \
 			echo "    Checking out $(project_name) revision $(TAG)"; \
