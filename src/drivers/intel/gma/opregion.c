@@ -344,10 +344,14 @@ enum cb_err intel_gma_init_igd_opregion(void)
 	// TODO Initialize Mailbox 1
 	opregion->mailbox1.clid = 1;
 
+	//From Intel OpRegion reference doc
+	/* No S0ix, external graphics */
+	opregion->header.pcon = 387;
+
 	// TODO Initialize Mailbox 3
 	opregion->mailbox3.bclp = IGD_BACKLIGHT_BRIGHTNESS;
 	opregion->mailbox3.pfit = IGD_FIELD_VALID | IGD_PFIT_STRETCH;
-	opregion->mailbox3.pcft = 0; // should be (IMON << 1) & 0x3e
+	opregion->mailbox3.pcft = (31 << 1) & 0x3e; // should be (IMON << 1) & 0x3e
 	opregion->mailbox3.cblv = IGD_FIELD_VALID | IGD_INITIAL_BRIGHTNESS;
 	opregion->mailbox3.bclm[0] = IGD_WORD_FIELD_VALID + 0x0000;
 	opregion->mailbox3.bclm[1] = IGD_WORD_FIELD_VALID + 0x0a19;
