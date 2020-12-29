@@ -286,6 +286,14 @@ enum cb_err intel_gma_init_igd_opregion(void)
 		sizeof(opregion->header.signature));
 	memcpy(opregion->header.vbios_version, vbt->coreblock_biosbuild,
 					ARRAY_SIZE(vbt->coreblock_biosbuild));
+
+	/* Inject GOP driver version */
+#if CONFIG(NO_GFX_INIT)	// Assuming that a GOP driver will be executed
+	/* FIXME: Hardcoded to SKLKBL version */
+	memcpy(opregion->header.dver, STR16("9.0.1080"),
+			2 * strlen("9.0.1080"));
+#endif
+
 	/* Extended VBT support */
 	if (vbt->hdr_vbt_size > sizeof(opregion->vbt.gvd1)) {
 		ext_vbt = cbmem_add(CBMEM_ID_EXT_VBT, vbt->hdr_vbt_size);
