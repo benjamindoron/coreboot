@@ -1,17 +1,6 @@
 /*
- * This file is part of the coreboot project.
- *
+ * SPDX-License-Identifier: GPL-2.0-only
  * Copyright (c) 2011 Sven Schnelle <svens@stackframe.org>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; version 2 of
- * the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
  *
  * Required methods to be implemented outside of this scope:
  *
@@ -40,34 +29,35 @@
  *
  * \_SB.PCI0.PEGP.PWRR
  *  the PEG PowerResource handling \_SB.PCI0.PEGP._ON and \_SB.PCI0.PEGP._OFF
- *
  */
 
 Scope (\_SB.PCI0.PEGP.DEV0)
 {
-	Name (DGOS, 0x00)
+	Name (HDAS, 0x00)	// FIXME(benjamindoron): OpRegion ("MLTF") or named?
 	Name (OMPR, 0x02)
-	Name (HDAS, 0x00)
-
+	Name (DGOS, 0x00)
+	Name (GPRF, 0x00)
+	
 	Method (NVOP, 4, Serialized)
 	{
+		Debug = "RP01.DEV0 - in NVOP"
 		If (Arg1 != 0x0100)
 		{
-			Return (0x80000001)
-		}
-		If (\_SB.PCI0.PEGP.DEV0._STA () == 0)
-		{
+			Debug = "RP01.DEV0 - NVOP: incorrect rev"
 			Return (0x80000002)
 		}
-
+	
 		Local0 = ToInteger (Arg2)
-
+	
 		/* Supported Optimus functions advertisement */
 		If (Local0 == 0)
 		{
+			Debug = "RP01.DEV0 - NVOP: func 0"
 			Return (Buffer (0x04)
 			{
-				0x09, 0x00, 0x00, 0x06
+				// functions 0, 26, 27 supported
+				// TODO(benjamindoron): Other functions required? (0x10 (16) - "GOBT?")
+				0x01, 0x00, 0x00, 0x0c
 			})
 		}
 		/* NOUVEAU_DSM_OPTIMUS_CAPS
@@ -78,36 +68,51 @@ Scope (\_SB.PCI0.PEGP.DEV0)
 		 */
 		ElseIf (Local0 == 0x1A)
 		{
+			Debug = "RP01.DEV0 - NVOP: func 1a"
 			CreateField (Arg3, 0x18, 0x02, OPCE)
 			CreateField (Arg3, 0x00, 0x01, FLCH)
+			CreateField (Arg3, 0x01, 0x01, DVSR)
+			CreateField (Arg3, 0x02, 0x01, DVSC)
 			// Did flags change?
-			If (ToInteger (FLCH) > 0)
+			If (ToInteger (FLCH))
 			{
 				// NOUVEAU_DSM_OPTIMUS_SET_POWERDOWN
 				// only called if no _PR3 in parent
-				OMPR = OPCE
+				OMPR = ToInteger (OPCE)
 			}
-
+	
 			Store (Buffer (0x04)
 			{
-				 0x00, 0x00, 0x00, 0x00
+				0x00, 0x00, 0x00, 0x00
 			}, Local0)
 			CreateField (Local0, 0x00, 0x01, OPEN)
 			CreateField (Local0, 0x03, 0x02, CGCS)
 			CreateField (Local0, 0x06, 0x01, SHPC)
+			CreateField (Local0, 0x08, 0x01, SNSR)
 			CreateField (Local0, 0x18, 0x03, DGPC)
 			CreateField (Local0, 0x1B, 0x02, HDAC)
-			OPEN = One // OPTIMUS_ENABLED
-			SHPC = One // OPTIMUS_DISPLAY_HOTPLUG
-			DGPC = One // OPTIMUS_DYNAMIC_PWR_CAP
+			OPEN = 1 // OPTIMUS_ENABLED
+	
+			SHPC = 1 // OPTIMUS_DISPLAY_HOTPLUG
+			HDAC = 0x02 // OPTIMUS_HDA_CODEC_MASK
+	
+			DGPC = 1 // OPTIMUS_DYNAMIC_PWR_CAP
+			If (ToInteger (DVSC))
+			{
+				If (ToInteger (DVSR))
+				{
+					GPRF = 1
+				}
+			}
+			SNSR = GPRF
 			If (\_SB.PCI0.PEGP.DEV0._STA () == 0xf)
 			{
 				CGCS = 0x03 // OPTIMUS_STATUS_PWR_STABLE
 			}
-
-			HDAC = 0x02 // OPTIMUS_HDA_CODEC_MASK
+	
 			Return (Local0)
 		}
+		// FIXME(benjamindoron): Unrecognised
 		/* NOUVEAU_DSM_OPTIMUS_FLAGS.
 		 * Called prior to disabling the dGPU if not _PR3 present to
 		 * update BIT0 and BIT1.
@@ -116,148 +121,114 @@ Scope (\_SB.PCI0.PEGP.DEV0)
 		 */
 		ElseIf (Local0 == 0x1B)
 		{
+			Debug = "RP01.DEV0 - NVOP: func 1b"
 			CreateField (Arg3, 0x00, 0x01, HDAU)
 			CreateField (Arg3, 0x01, 0x01, HDAR)
 			Store (Buffer (0x04)
 			{
-				 0x00, 0x00, 0x00, 0x00
+				0x00, 0x00, 0x00, 0x00
 			}, Local0)
 			CreateField (Local0, 0x02, 0x02, RQGS)
 			CreateField (Local0, 0x04, 0x01, PWST)
-			PWST = One
+			PWST = 1
 			/* TODO: set RQGS to one if external dock is connected
 			 * and powered.
 			 */
-			RQGS = Zero
+			RQGS = 0
 			If (ToInteger (HDAR))
 			{
 				//VGA switcheroo: Called on card power off
 				HDAS = ToInteger (HDAU)
 			}
-
+	
 			Return (Local0)
 		}
-		/* NOUVEAU_DSM_POWER
-		 * Only used if Optimus is disabled?
-		 * Only used if _PR3 on root isn't supported?
-		 */
-		ElseIf (Local0 == 3)
-		{
-			If (ToInteger(Arg3) > 0)
-			{
-				\_SB.PCI0.PEGP._ON()
-				\_SB.PCI0.PEGP.DEV0._ON()
-			}
-			Else
-			{
-				\_SB.PCI0.PEGP.DEV0._OFF()
-				\_SB.PCI0.PEGP._OFF()
-			}
-		}
-
+	
 		Return (0x80000002)
 	}
-
-	// helper function to compare two buffers
-	Method (CMP, 2, NotSerialized)
+	
+	Method (_DSM, 4, Serialized)
 	{
-		If (SizeOf (Arg0) != 0x10)
+		Debug = "RP01.DEV0 in _DSM"
+		/* NV OPTIMUS DSM */
+		If (Arg0 == ToUUID ("a486d8f8-0bda-471b-a72b-6042a6b5bee0"))
 		{
-			Return (0x00)
-		}
-
-		If (SizeOf (Arg1) != 0x10)
-		{
-			Return (0x00)
-		}
-
-		Local0 = 0
-		While (Local0 < 0x10)
-		{
-			If (DerefOf (Index (Arg0, Local0)) != DerefOf (Index (Arg1, Local0)))
-			{
-				Return (0x00)
-			}
-
-			Local0++
-		}
-
-		Return (0x01)
-	}
-
-	Method (_DSM, 4, NotSerialized)
-	{
-		/* NV DSM OPTIMUS */
-		If (CMP (Arg0, Buffer (0x10) {
-			0xF8, 0xD8, 0x86, 0xA4, 0xDA, 0x0B, 0x1B, 0x47,
-			0xA7, 0x2B, 0x60, 0x42, 0xA6, 0xB5, 0xBE, 0xE0}))
-		{
+			Debug = "RP01.DEV0 - calling NVOP"
 			Return (NVOP (Arg0, Arg1, Arg2, Arg3))
 		}
-
-		Return (Buffer (0x04)
-		{
-			0x01, 0x00, 0x00, 0x80
-		})
+	
+		Debug = "RP01.DEV0 - NOT calling NVOP"
+		Return (0x80000001)
 	}
-
+	
 	PowerResource (PWRR, 0, 0)
 	{
-		Method (_STA)
+		Method (_STA, 0, Serialized)
 		{
+			Debug = "RP01.DEV0 in PWRR._STA"
 			If (\_SB.PCI0.PEGP.DEV0._STA () == 0xf)
 			{
+				Debug = "RP01.DEV0 _STA - dev present"
 				Return (1)
 			}
 			Else
 			{
+				Debug = "RP01.DEV0 _STA - dev NOT present"
 				Return (0)
 			}
 		}
-
-		Method (_ON)
+	
+		Method (_ON, 0, Serialized)
 		{
+			Debug = "RP01.DEV0 in PWRR._ON"
 			\_SB.PCI0.PEGP.DEV0._ON ()
-			Notify (\_SB.PCI0.PEGP, Zero) // Bus Check
+//			^^MLTF = 0
+			// FIXME(benjamindoron): Don't notify on new chipsets?
+//			Notify (\_SB.PCI0.PEGP, 0) // Bus Check
 		}
-
-		Method (_OFF)
+	
+		Method (_OFF, 0, Serialized)
 		{
+			Debug = "RP01.DEV0 in PWRR._OFF"
 			\_SB.PCI0.PEGP.DEV0._OFF ()
-			Notify (\_SB.PCI0.PEGP, Zero) // Bus Check
+			// FIXME(benjamindoron): Don't notify on new chipsets?
+//			Notify (\_SB.PCI0.PEGP, 0) // Bus Check
 		}
 	}
-
+	
 	/* For resource enumeration, turn on the power and PCIe root port */
-	Name (_PRE, Package () { \_SB.PCI0.PEGP.DEV0.PWRR,
-				 \_SB.PCI0.PEGP.PWRR })
 	Name (_PR0, Package () { \_SB.PCI0.PEGP.DEV0.PWRR,
 				 \_SB.PCI0.PEGP.PWRR })
+	Name (_PR2, Package () { \_SB.PCI0.PEGP.DEV0.PWRR,
+				 \_SB.PCI0.PEGP.PWRR })
+			// TODO: PCIe link, then dGPU power?
 	Name (_PR3, Package () { \_SB.PCI0.PEGP.DEV0.PWRR,
 				 \_SB.PCI0.PEGP.PWRR })
-
+	
 	OperationRegion (RPCS, PCI_Config, 0x00, 0x100)
 	Field (RPCS, AnyAcc, NoLock, Preserve)
 	{
 		VID, 16,
 	}
-
+	
 	/* GPU power is turned on by PWRR before executing _PS0 */
 	Method (_PS0, 0, NotSerialized)
 	{
+		Debug = "RP01.DEV0 in PS0"
 		/* Only power up PEG if enabled by _DSM */
 		If (\_SB.PCI0.PEGP.DEV0.DGOS)
 		{
+			Debug = "power up PEG"
 			\_SB.PCI0.PEGP._ON ()
-			DGOS = Zero
+			DGOS = 0
 		}
-
+	
 		/* Wait for device init */
 		Sleep(50)
-
+	
 		/* Retrain link */
 		\_SB.PCI0.PEGP._PS0 ()
-
+	
 		/* Wait for device to appear */
 		Local0 = 0x32
 		While (Local0)
@@ -269,36 +240,40 @@ Scope (\_SB.PCI0.PEGP.DEV0)
 			Sleep (2)
 			Local0--
 		}
-
-		HDAS = Zero
+	
+		HDAS = 0
 	}
-
+	
 	/* GPU power is turned off by PWRR after executing _PS3 */
 	Method (_PS3, 0, NotSerialized)
 	{
+		Debug = "RP01.DEV0 in PWRR._OFF"
 		/* Set link down */
 		\_SB.PCI0.PEGP._PS3 ()
-
+	
 		/* Only use _PS3 to power down PEG if enabled by _DSM */
 		If (\_SB.PCI0.PEGP.DEV0.OMPR == 0x03)
 		{
+			Debug = "using _PS3 to power down PEG"
 			\_SB.PCI0.PEGP._OFF ()
-
+	
 			\_SB.PCI0.PEGP.DEV0.OMPR = 0x02
 			\_SB.PCI0.PEGP.DEV0.DGOS = 0x01
 		}
 	}
-
+	
 	Method (_PSC, 0, Serialized)
 	{
+		Debug = "RP01.DEV0 in _PSC"
 		If (\_SB.PCI0.PEGP.DEV0._STA () == 0xf)
 		{
+			Debug = "RP01.DEV0 _PSC d0"
 			Return (0)
 		}
 		Else
 		{
+			Debug = "RP01.DEV0 _PSC d3"
 			Return (3)
 		}
 	}
-
 }
