@@ -21,6 +21,8 @@
 
 static const struct lpc_mmio_range skl_lpc_fixed_mmio_ranges[] = {
 	{ PCH_PRESERVED_BASE_ADDRESS, PCH_PRESERVED_BASE_SIZE },
+	{ CONFIG_CRB_TPM_BASE_ADDRESS, 0x5000 },
+	{ CONFIG_TPM_TIS_BASE_ADDRESS, 0x5000 },
 	{ 0, 0 }
 };
 
