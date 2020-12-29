@@ -202,6 +202,8 @@ void platform_fsp_silicon_init_params_cb(FSPS_UPD *supd)
 	       sizeof(params->PcieRpClkReqSupport));
 	memcpy(params->PcieRpClkReqNumber, config->PcieRpClkReqNumber,
 	       sizeof(params->PcieRpClkReqNumber));
+	memcpy(params->PcieRpClkReqDetect, config->PcieRpClkReqDetect,
+	       sizeof(params->PcieRpClkReqDetect));
 	memcpy(params->PcieRpAdvancedErrorReporting,
 		config->PcieRpAdvancedErrorReporting,
 			sizeof(params->PcieRpAdvancedErrorReporting));

@@ -197,6 +197,9 @@ struct soc_intel_skylake_config {
 	 */
 	u8 PcieRpClkReqNumber[CONFIG_MAX_ROOT_PORTS];
 
+	/* Probe CLKREQ# signal before enabling CLKREQ# based power management.*/
+	u8 PcieRpClkReqDetect[CONFIG_MAX_ROOT_PORTS];
+
 	/*
 	 * Clk source number for Root Port
 	 */
