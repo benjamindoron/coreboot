@@ -369,10 +369,17 @@ void platform_fsp_silicon_init_params_cb(FSPS_UPD *supd)
 	if (dev) {
 		if (!xdci_can_enable())
 			dev->enabled = 0;
+		// FIXME: Is this necessary?
+		if (CONFIG(SOC_INTEL_DEBUG_CONSENT))
+			dev->enabled = 1;
 		params->XdciEnable = dev->enabled;
 	} else {
 		params->XdciEnable = 0;
 	}
+
+	tconfig->DebugInterfaceEnable = CONFIG(SOC_INTEL_DEBUG_CONSENT) ? 1 : 0;
+	// FIXME: Is this necessary?
+	tconfig->DebugInterfaceLockEnable = CONFIG(SOC_INTEL_DEBUG_CONSENT) ? 0 : 1;
 
 	/* Enable or disable Gaussian Mixture Model in devicetree */
 	dev = pcidev_path_on_root(SA_DEVFN_GMM);

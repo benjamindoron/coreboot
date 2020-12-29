@@ -284,7 +284,9 @@ void platform_fsp_memory_init_params_cb(FSPM_UPD *mupd, uint32_t version)
 	m_t_cfg->DidInitStat = 0x01;
 
 	/* DCI and TraceHub configs */
-	m_t_cfg->PchDciEn = config->PchDciEn;
+	m_t_cfg->PchDciEn = CONFIG(SOC_INTEL_DEBUG_CONSENT);
+	// FIXME: Is this necessary?
+	m_cfg->PcdDebugInterfaceFlags = CONFIG(SOC_INTEL_DEBUG_CONSENT) ? 0x1a : 0x12;
 
 	dev = pcidev_path_on_root(PCH_DEVFN_TRACEHUB);
 	m_cfg->EnableTraceHub = dev && dev->enabled;

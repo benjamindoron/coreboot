@@ -150,9 +150,6 @@ struct soc_intel_skylake_config {
 	u32 TraceHubMemReg0Size;
 	u32 TraceHubMemReg1Size;
 
-	/* DCI Enable/Disable */
-	u8 PchDciEn;
-
 	/*
 	 * PCIe Root Port configuration:
 	 * each element of array corresponds to
