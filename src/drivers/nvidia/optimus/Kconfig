@@ -1,0 +1,10 @@
+config DRIVERS_NVIDIA_OPTIMUS
+	bool
+	default n
+
+config NVIDIA_OPTIMUS
+	bool "Enable Nvidia Optimus"
+	depends on DRIVERS_NVIDIA_OPTIMUS
+	depends on HAVE_ACPI_TABLES
+	help
+	  Add ACPI code to support power switching the dGPU at runtime.
