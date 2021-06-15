@@ -149,6 +149,9 @@ void platform_fsp_memory_init_params_cb(FSPM_UPD *mupd, uint32_t version)
 	m_t_cfg->SendDidMsg = 0x01;
 	m_t_cfg->DidInitStat = 0x01;
 
+	/* If HECI is disabled, it cannot respond */
+	m_t_cfg->DisableHeciRetry = CONFIG(USE_ME_CLEANER);
+
 	/* DCI and TraceHub configs */
 	m_t_cfg->PchDciEn = config->PchDciEn;
 
