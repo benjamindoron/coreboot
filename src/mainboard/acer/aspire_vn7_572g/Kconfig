@@ -39,7 +39,8 @@ config DIMM_SPD_SIZE
 	default 512
 
 config FMDFILE
-	default "src/mainboard/\$(CONFIG_MAINBOARD_DIR)/board.fmd" if INCLUDE_EC_FIRMWARE
+	default "src/mainboard/\$(CONFIG_MAINBOARD_DIR)/vboot-ro-rwa.fmd" if VBOOT && !VBOOT_SLOTS_RW_AB
+	default "src/mainboard/\$(CONFIG_MAINBOARD_DIR)/board.fmd" if !VBOOT && INCLUDE_EC_FIRMWARE
 
 config INCLUDE_EC_FIRMWARE
 	bool "Include EC firmware blob"
@@ -101,6 +102,18 @@ config POST_IO
 
 config UART_FOR_CONSOLE
 	default 2
+
+config VBOOT
+	select GBB_FLAG_DISABLE_EC_SOFTWARE_SYNC
+	select GBB_FLAG_DISABLE_FWMP
+	select GBB_FLAG_DISABLE_LID_SHUTDOWN
+	select GBB_FLAG_DISABLE_PD_SOFTWARE_SYNC
+	select HAS_RECOVERY_MRC_CACHE
+	select VBOOT_NO_BOARD_SUPPORT
+	select VBOOT_SLOTS_RW_A
+
+config VBOOT_VBNV_OFFSET
+	default 0x60
 
 config VGA_BIOS_DGPU_ID
 	default "10de,139a"
