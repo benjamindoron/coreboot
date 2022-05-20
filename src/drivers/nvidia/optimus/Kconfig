@@ -8,3 +8,15 @@ config NVIDIA_OPTIMUS
 	depends on HAVE_ACPI_TABLES
 	help
 	  Add ACPI code to support power switching the dGPU at runtime.
+
+config DRIVERS_NVIDIA_OPTIMUS_GC6
+	bool
+	depends on DRIVERS_NVIDIA_OPTIMUS
+	default n
+
+config NVIDIA_OPTIMUS_GC6
+	bool "Enable Nvidia Optimus GC6"
+	depends on DRIVERS_NVIDIA_OPTIMUS_GC6 && NVIDIA_OPTIMUS
+	depends on HAVE_ACPI_TABLES
+	help
+	  Add ACPI code to support the GC6 dGPU state.
