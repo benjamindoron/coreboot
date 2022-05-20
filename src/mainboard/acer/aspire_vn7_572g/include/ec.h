@@ -3,6 +3,9 @@
 #ifndef MAINBOARD_EC_H
 #define MAINBOARD_EC_H
 
+#define APM_CNT_BOARD_SMI	0xDD
+
+#if !defined(__ACPI__)
 uint8_t ec_cmd_90_read(uint8_t addr);
 void ec_cmd_91_write(uint8_t addr, uint8_t data);
 uint8_t ec_cmd_94_query(void);
@@ -10,5 +13,6 @@ uint8_t ec_idx_read(uint16_t addr);
 void ec_idx_write(uint16_t addr, uint8_t data);
 /* TODO: Check if ADC is valid. */
 uint16_t read_ec_adc_converter(uint8_t adc);
+#endif
 
 #endif

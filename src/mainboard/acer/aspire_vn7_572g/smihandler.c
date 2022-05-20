@@ -6,6 +6,7 @@
 #include <cpu/x86/smm.h>
 #include <ec/acpi/ec.h>
 #include <soc/nvs.h>
+#include "include/ec.h"
 
 /*
  * TODO: Perform RE of protocols in vendor firmware:
@@ -19,9 +20,6 @@
  * Also, consider gEfiSmmIoTrapDispatch2ProtocolGuid, but
  * this is less likely.
  */
-
-/* Keep in sync with dsdt.asl; could insert into SSDT at runtime */
-#define APM_CNT_BOARD_SMI	0xDD
 
 /* Toggle TURBO_MODE_DISABLE bit in IA32_MISC_ENABLE MSR
    when requested by EC. */

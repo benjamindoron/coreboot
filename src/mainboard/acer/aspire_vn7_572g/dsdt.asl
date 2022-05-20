@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 
 #include <acpi/acpi.h>
+#include "include/ec.h"
 DefinitionBlock(
 	"dsdt.aml",
 	"DSDT",
@@ -24,7 +25,6 @@ DefinitionBlock(
 		SSDP, 8
 	}
 
-	Name (ESMI, 0xDD)	// NOTE: Could insert into SSDT at runtime
 	/* Returns a non-zero integer if SMI function failed */
 	Method (TRPS, 3, Serialized)
 	{
@@ -40,7 +40,7 @@ DefinitionBlock(
 		SSDP = Local0
 		/* NOTE: To use a general IO trap, program the range
 		   into a PCR_PSTH_TRPREGx. Otherwise, this is APM. */
-		SSMP = ESMI
+		SSMP = APM_CNT_BOARD_SMI
 		Return (SMIF)
 	}
 

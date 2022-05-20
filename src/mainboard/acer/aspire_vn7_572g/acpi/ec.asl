@@ -199,7 +199,7 @@ Device (EC0)
 				TINI ()
 				EOSS = 0x05
 				/* OSYS retrieved by SMM, Arg3 is unused */
-//				TRPS (0x82, 1, 0)
+				TRPS (0x82, 1, 0)
 
 				/*
 				 * Other pages return valid data too, but this seems to be
@@ -233,7 +233,7 @@ Device (EC0)
 	{
 		ECSS = Arg0
 		/* OSYS retrieved by SMM */
-//		TRPS (0x82, 0x02, Arg0)
+		TRPS (0x82, 0x02, Arg0)
 		If ((Arg0 == 3) || (Arg0 == 4))
 		{
 			RFST = RFEX
@@ -247,7 +247,7 @@ Device (EC0)
 		TINI ()
 		Notify (BAT0, 0x81) // Information Change
 		/* OSYS retrieved by SMM */
-//		TRPS (0x82, 0x03, Arg0)
+		TRPS (0x82, 0x03, Arg0)
 		If ((Arg0 == 3) || (Arg0 == 4))
 		{
 			RFEX = RFST
@@ -323,7 +323,7 @@ Device (EC0)
 	Method (_Q3F, 0, NotSerialized)
 	{
 		/* Arg3 is unused */
-//		TRPS (0x80, 0, 0)
+		TRPS (0x80, 0, 0)
 	}
 
 	Method (_Q40, 0, NotSerialized)
@@ -408,13 +408,13 @@ Device (EC0)
 	Method (_Q6C, 0, NotSerialized)
 	{
 		/* Arg3 is unused */
-//		TRPS (0x81, 0, 0)
+		TRPS (0x81, 0, 0)
 	}
 
 	Method (_Q6D, 0, NotSerialized)
 	{
 		/* Arg3 is unused */
-//		TRPS (0x81, 1, 0)
+		TRPS (0x81, 1, 0)
 	}
 
 	#include "ac.asl"

@@ -10,7 +10,7 @@ void mainboard_memory_init_params(FSPM_UPD *mupd)
 {
 	FSP_M_CONFIG *const mem_cfg = &mupd->FspmConfig;
 
-	/* TODO: Search vendor FW for Dq/Dqs */
+	/* TODO: Search vendor FW for Dq/Dqs. Unnecessary if FSP detects LPDDR */
 	struct spd_block blk = {
 		.addr_map = { 0x50, 0x52 },
 	};

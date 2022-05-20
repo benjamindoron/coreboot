@@ -15,7 +15,7 @@
 #define DGPU_HOLD_RST	GPP_B4	/* Active low */
 #define DGPU_PWR_EN	GPP_B21	/* Active low */
 
-/* TODO/NB: Detection is still unreliable. Is a wait required? */
+/* TODO/NB: Detection is still unreliable. Likely must wait. */
 static void board_detect(void)
 {
 	printk(BIOS_DEBUG, "Mainboard: Detecting board SKU\n");
