@@ -7,7 +7,7 @@ DefinitionBlock(
 	ACPI_DSDT_REV_2,
 	OEM_ID,
 	ACPI_TABLE_CREATOR,
-	0x20110725
+	0x00000002
 )
 {
 	#include <acpi/dsdt_top.asl>
@@ -19,19 +19,15 @@ DefinitionBlock(
 	{
 		#include <soc/intel/common/block/acpi/acpi/northbridge.asl>
 		#include <soc/intel/tigerlake/acpi/southbridge.asl>
-		#include <soc/intel/tigerlake/acpi/tcss.asl>
 		#include <drivers/intel/gma/acpi/default_brightness_levels.asl>
 	}
+
+	#include <southbridge/intel/common/acpi/sleepstates.asl>
 
 	Scope (\_SB.PCI0.LPCB)
 	{
 		#include <drivers/pc80/pc/ps2_controller.asl>
 	}
 
-	#include <southbridge/intel/common/acpi/sleepstates.asl>
-
-#if CONFIG(EC_CLEVO_IT5570E)
-	#include <variant.asl>
-	#include <ec/clevo/it5570e/acpi/common.asl>
-#endif
+	#include "acpi/mainboard.asl"
 }

@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-2.0-only
+## SPDX-License-Identifier: GPL-2.0-only
 
 # -----------------------------------------------------------------
 entries
@@ -8,66 +8,62 @@ entries
 
 # -----------------------------------------------------------------
 # RTC_BOOT_BYTE (coreboot hardcoded)
-384		  1	e	4		boot_option
-388		  4	h	0		reboot_counter
+384		1	e	1		boot_option
+388		4	h	0		reboot_counter
+
+# -----------------------------------------------------------------
+# RTC_CLK_ALTCENTURY
+400		8	r	0		century
 
 # -----------------------------------------------------------------
 # coreboot config options: console
-395		  4	e	6		debug_level
+408		24	r	0		cmos_post_offset
+432		4	e	2		debug_level
 
 # -----------------------------------------------------------------
 # coreboot config options: southbridge
-410		  2	e	7		power_on_after_fail
+436		1	e	3		me_state
+437		3	h	0		me_state_counter
+440		1	e	4		legacy_8254_timer
+441		2	e	5		power_on_after_fail
 
 # -----------------------------------------------------------------
-# EC options
-500		  1	e	1		ac_fan_always_on
-502		  2	e	7		camera_boot_state
-504		  1	e	1		fn_win_swap
-505		  1	e	8		tp_toggle_mode
-
-519		  1	e	1		flexicharger_on
-520		  8	h	0		flexicharger_start
-528		  8	h	0		flexicharger_stop
-
-543		  1	e	1		kbled_booteffect
-544		 16	h	0		kbled_timeout
+# coreboot config options: board
 
 # -----------------------------------------------------------------
 # vboot nv area
-800		128	r	0		vbnv
+816		64	r	0		boot_count_offset
+880		128	r	0		vbnv
 
 # -----------------------------------------------------------------
 # coreboot config options: check sums
-984		 16	h	0		check_sum
+1008		16	h	0		check_sum
+#1024		1024	r	0		upper_bank
 
 # -----------------------------------------------------------------
 
 enumerations
 
 #ID	value	text
-1	0	Disable
-1	1	Enable
-2	0	Enable
-2	1	Disable
-4	0	Fallback
-4	1	Normal
-6	0	Emergency
-6	1	Alert
-6	2	Critical
-6	3	Error
-6	4	Warning
-6	5	Notice
-6	6	Info
-6	7	Debug
-6	8	Spew
-7	0	Disable
-7	1	Enable
-7	2	Keep
-8	0	CtrlAltF9
-8	1	KeycodeF7F8
-
+1	0	Fallback
+1	1	Normal
+2	0	Emergency
+2	1	Alert
+2	2	Critical
+2	3	Error
+2	4	Warning
+2	5	Notice
+2	6	Info
+2	7	Debug
+2	8	Spew
+3	0	Disable
+3	1	Enable
+4	0	Disable
+4	1	Enable
+4	2	Keep
+5	0	Disable
+5	1	Enable
 # -----------------------------------------------------------------
 checksums
 
-checksum 392 799 984
+checksum 432 815 1008

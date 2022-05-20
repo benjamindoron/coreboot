@@ -1,4 +1,4 @@
 comment "Tiger Lake H"
 
 config BOARD_CLEVO_NH5XHPQ
-	bool "NH5xHPQ / NH7xHPQ"
+	bool "NH5x_NH7xHP"

@@ -3,6 +3,8 @@
 #ifndef VARIANT_ROMSTAGE_H
 #define VARIANT_ROMSTAGE_H
 
-void variant_configure_fspm(FSPM_UPD *memupd);
+#include <soc/romstage.h>
+
+void variant_memory_init_params(FSPM_UPD *mupd);
 
 #endif

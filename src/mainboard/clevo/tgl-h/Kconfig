@@ -1,27 +1,33 @@
+## SPDX-License-Identifier: GPL-2.0-only
+
 config BOARD_CLEVO_TGLH_COMMON
 	def_bool n
 	select BOARD_ROMSIZE_KB_16384
 	select DRIVERS_I2C_HID
-	select DRIVERS_INTEL_PMC
-	select DRIVERS_INTEL_USB4_RETIMER
+	select DRIVERS_NVIDIA_OPTIMUS
+	select DRIVERS_NVIDIA_OPTIMUS_GC6
+	select DRIVERS_USB_ACPI
+	# TODO: Review and improve this driver
+	select EC_CLEVO_IT5570E
+	select HAVE_ACPI_RESUME
 	select HAVE_ACPI_TABLES
 	select HAVE_CMOS_DEFAULT
 	select HAVE_OPTION_TABLE
 	select INTEL_GMA_HAVE_VBT
 	select INTEL_LPSS_UART_FOR_CONSOLE
-	select MEMORY_MAPPED_TPM
 	select MAINBOARD_HAS_TPM2
+	select MAINBOARD_USES_IFD_GBE_REGION
+	select MEMORY_MAPPED_TPM
 	select NO_UART_ON_SUPERIO
 	select SOC_INTEL_COMMON_BLOCK_HDA_VERB
-	select SOC_INTEL_ENABLE_USB4_PCIE_RESOURCES
 	select SOC_INTEL_TIGERLAKE
+	select SOC_INTEL_TIGERLAKE_PCH_H
 	select SPD_READ_BY_WORD
 	select SYSTEM_TYPE_LAPTOP
+	select TPM_RDRESP_NEED_DELAY
 
 config BOARD_CLEVO_NH5XHPQ
 	select BOARD_CLEVO_TGLH_COMMON
-	select EC_CLEVO_IT5570E
-	select HAVE_SPD_IN_CBFS
 
 if BOARD_CLEVO_TGLH_COMMON
 
@@ -29,39 +35,39 @@ config MAINBOARD_DIR
 	default "clevo/tgl-h"
 
 config VARIANT_DIR
-	default "l140mu" if BOARD_CLEVO_NH5XHPQ
-
-config MAINBOARD_PART_NUMBER
-	default "L140MU" if BOARD_CLEVO_NH5XHPQ
-
-config MAINBOARD_VERSION
-	default "2.2A" if BOARD_CLEVO_NH5XHPQ
+	default "nh5xhpq" if BOARD_CLEVO_NH5XHPQ
 
 config DEVICETREE
 	default "variants/\$(CONFIG_VARIANT_DIR)/devicetree.cb"
 
+config MAINBOARD_PART_NUMBER
+	default "NH5xHPQ/NH7xHPQ" if BOARD_CLEVO_NH5XHPQ
+
 config CBFS_SIZE
-	default 0xb00000 if BOARD_CLEVO_NH5XHPQ
+	default 0xB00000
 
-config CONSOLE_POST
-	default y
+config CONSOLE_SERIAL
+	default n
 
-config UART_FOR_CONSOLE
+config DIMM_MAX
 	default 2
 
-config TPM_PIRQ
-	default 0x77 if BOARD_CLEVO_NH5XHPQ # GPP_C9_IRQ
+config DIMM_SPD_SIZE
+	default 512
+
+config MAX_CPUS
+	default 16
+
+config ONBOARD_VGA_IS_PRIMARY
+	default y
 
 config POST_DEVICE
 	default n
 
-config SEABIOS_PS2_TIMEOUT
-	default 500
-
-config USE_PM_ACPI_TIMER
+config POST_IO
 	default n
 
-config EC_CLEVO_IT5570E_MEM_BASE
-	default 0xfe0b0000
+config UART_FOR_CONSOLE
+	default 2
 
 endif
