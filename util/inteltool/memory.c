@@ -256,6 +256,14 @@ int print_mchbar(struct pci_dev *nb, struct pci_access *pacc, const char *dump_s
 		mchbar_phys &= 0x0000007fffff0000UL; /* 38:16 */
 		size = 65536;
 		break;
+	case PCI_DEVICE_ID_INTEL_CORE_TGL_ID_H_4:
+	case PCI_DEVICE_ID_INTEL_CORE_TGL_ID_H_6:
+	case PCI_DEVICE_ID_INTEL_CORE_TGL_ID_H_8:
+		mchbar_phys = pci_read_long(nb, 0x48);
+		mchbar_phys |= ((uint64_t)pci_read_long(nb, 0x4c)) << 32;
+		mchbar_phys &= 0x0000007ffffe0000UL; /* 38:17 */
+		size = 131072;
+		break;
 	default:
 		printf("Error: Dumping MCHBAR on this northbridge is not (yet) supported.\n");
 		printf("Error: Unknown PCI id: %04x/%04x\n", nb->vendor_id, nb->device_id);

@@ -106,6 +106,8 @@ int print_ahci(struct pci_dev *ahci)
 	switch (ahci->device_id) {
 	case PCI_DEVICE_ID_INTEL_SUNRISEPOINT_SATA:
 	case PCI_DEVICE_ID_INTEL_SUNRISEPOINT_LP_SATA:
+	case PCI_DEVICE_ID_INTEL_TIGERPOINT_DESKTOP_SATA:
+	case PCI_DEVICE_ID_INTEL_TIGERPOINT_MOBILE_SATA:
 		ahci_registers_size = 0x800;
 		ahci_sir_index_offset = 0xa0;
 		ahci_cfg_registers = sunrise_ahci_cfg_registers;
