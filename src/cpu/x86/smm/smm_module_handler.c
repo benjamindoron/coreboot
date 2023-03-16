@@ -8,11 +8,14 @@
 #include <commonlib/region.h>
 #include <console/cbmem_console.h>
 #include <console/console.h>
+#include <console/uart.h>
 #include <cpu/cpu.h>
 #include <cpu/x86/gdt.h>
 #include <cpu/x86/lapic.h>
 #include <cpu/x86/mp.h>
 #include <cpu/x86/smm.h>
+#include <device/mmio.h>
+#include <drivers/uart/uart8250reg.h>
 #include <rmodule.h>
 #include <types.h>
 #include <security/intel/stm/SmmStm.h>
@@ -135,6 +138,55 @@ static void smi_restore_pci_address(void)
 	outl(pci_orig, 0xcf8);
 }
 
+struct uart8250_state {
+	uint8_t IER, IIR, LCR, MCR;
+};
+
+static struct uart8250_state s_uart8250_state;
+
+static uint8_t uart8250_read(uint32_t base, uint8_t reg)
+{
+	if (CONFIG(DRIVERS_UART_8250IO))
+		return inb(base + reg);
+	else if (CONFIG(DRIVERS_UART_8250MEM_32))
+		return read32p(base + 4 * reg) & 0xff;
+	else if (CONFIG(DRIVERS_UART_8250MEM))
+		return read8p(base + reg);
+}
+
+static void uart8250_write(uint32_t base, uint8_t reg, uint8_t data)
+{
+	if (CONFIG(DRIVERS_UART_8250IO))
+		outb(data, base + reg);
+	else if (CONFIG(DRIVERS_UART_8250MEM_32))
+		write32p(base + 4 * reg, data);
+	else if (CONFIG(DRIVERS_UART_8250MEM))
+		write8p(base + reg, data);
+}
+
+static void uart8250_save(void)
+{
+	uint32_t base = uart_platform_base(CONFIG_UART_FOR_CONSOLE);
+
+	/* Save previous state for restoring later. */
+	s_uart8250_state.IER = uart8250_read(base, UART8250_IER);
+	s_uart8250_state.IIR = uart8250_read(base, UART8250_IIR);
+	s_uart8250_state.LCR = uart8250_read(base, UART8250_LCR);
+	s_uart8250_state.MCR = uart8250_read(base, UART8250_MCR);
+}
+
+static void uart8250_restore(void)
+{
+	uint32_t base = uart_platform_base(CONFIG_UART_FOR_CONSOLE);
+
+	/* Restore previous state used by payload/OS. */
+	uart8250_write(base, UART8250_LCR, s_uart8250_state.LCR);
+	if ((s_uart8250_state.IIR & UART8250_IIR_FIFO_EN) == UART8250_IIR_FIFO_EN)
+		uart8250_write(base, UART8250_FCR, UART8250_FCR_FIFO_EN);
+	uart8250_write(base, UART8250_IER, s_uart8250_state.IER);
+	uart8250_write(base, UART8250_MCR, s_uart8250_state.MCR);
+}
+
 struct x86_debug_register_state {
 	uintptr_t dr0, dr1, dr2, dr3;
 };
@@ -236,6 +288,9 @@ asmlinkage void smm_handler_start(void *arg)
 
 	smm_soc_early_init();
 
+	if (CONFIG(DEBUG_SMI) && CONFIG(CONSOLE_SERIAL))
+		uart8250_save();
+
 	console_init();
 
 	printk(BIOS_SPEW, "\nSMI# #%d\n", cpu);
@@ -272,6 +327,8 @@ asmlinkage void smm_handler_start(void *arg)
 	}
 
 	if (CONFIG(DEBUG_SMI) && CONFIG(CONSOLE_SERIAL)) {
+		uart8250_restore();
+
 		// Clear out the allocated breakpoints so that we don't 'run out'
 		null_breakpoint_remove();
 		//stack_canary_breakpoint_remove();
