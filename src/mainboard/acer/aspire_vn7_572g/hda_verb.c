@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 
 /* TODO: Convert to macros */
-
 #include <device/azalia_device.h>
 
 const u32 cim_verb_data[] = {
@@ -16,11 +15,11 @@ const u32 cim_verb_data[] = {
 	/* Verb ID: Bits 19:8 / Bits 19:16 */
 	/* Payload: Bits 7:0  / Bits 15:0 */
 
+	/* NOTE: Program subsystem before reset, as vendor does? */
+	/* HDA Codec Subsystem ID Verb Table */
+	AZALIA_SUBVENDOR(0, 0x10251037),	/* Subsystem device ID patched by PeiOemModule */
 	/* Reset Codec */
 	AZALIA_RESET(0x1),
-	/* NOTE: Corrected the table in vendor FW, programming subsystem after reset */
-	/* HDA Codec Subsystem ID Verb Table */
-	AZALIA_SUBVENDOR(0, 0x10251037),
 
 	/* Pin Widget Verb Table */
 	AZALIA_PIN_CFG(0, 0x12, 0x411111c0),
@@ -35,9 +34,8 @@ const u32 cim_verb_data[] = {
 	AZALIA_PIN_CFG(0, 0x21, 0x02211030),	/* Headphone */
 
 	/*
-	 * See data blob in "InstallPchHdaVerbTablePei" of vendor firmware
-	 * (some appear in https://github.com/torvalds/linux/blob/master/sound/pci/hda/patch_realtek.c).
-	 * - Largely coefficient programming (undocumented): Select coeff; write data
+	 * See data blob in "InstallPchHdaVerbTablePei" of vendor firmware.
+	 * - Largely coefficient programming (undocumented): select; write.
 	 * - Also programs speaker amplifier gain
 	 * - Sets speaker output
 	 * NOTE: NID 0x20 holds the "Realtek Defined Hidden registers"
@@ -49,8 +47,8 @@ const u32 cim_verb_data[] = {
 
 	0x02050037,	/* Set coeff idx: 0x37 */
 	0x02044a05,	/* Set processing coeff: 0x4a05 */
-	0x05750003,	/* Set coeff idx on NID 0x57?: 0x3 */
-	0x057486a6,	/* Set processing coeff on NID 0x57?: 0x86a6 */
+	0x05750003,	/* Set coeff idx (on NID 0x57): 0x3 */
+	0x057486a6,	/* Set processing coeff (on NID 0x57): 0x86a6 */
 
 	0x02050046,	/* Set coeff idx: 0x46 */
 	0x02040004,	/* Set processing coeff: 0x4 */
@@ -93,24 +91,23 @@ const u32 cim_verb_data[] = {
 	/* Verb ID: Bits 19:8 */
 	/* Payload: Bits 7:0 */
 
-	/* NOTE: Corrected the table in vendor FW, using codec address 0x2, not 0x0 */
-
+	/* NOTE: Required to use codec address 0x0 here. But why, is it offset? */
 	/* Enable the third converter and pin first */
-	0x20878101,
-	0x20878101,
-	0x20878101,
-	0x20878101,
+	0x00878101,
+	0x00878101,
+	0x00878101,
+	0x00878101,
 
 	/* Pin Widget Verb Table */
-	AZALIA_PIN_CFG(2, 0x05, 0x18560010),
-	AZALIA_PIN_CFG(2, 0x06, 0x18560020),
-	AZALIA_PIN_CFG(2, 0x07, 0x18560030),
+	AZALIA_PIN_CFG(0, 0x05, 0x18560010),
+	AZALIA_PIN_CFG(0, 0x06, 0x18560020),
+	AZALIA_PIN_CFG(0, 0x07, 0x18560030),
 
-	/* Disable the third converter and third pin */
-	0x20878100,
-	0x20878100,
-	0x20878100,
-	0x20878100,
+	/* Disable the third converter and pin */
+	0x00878100,
+	0x00878100,
+	0x00878100,
+	0x00878100,
 };
 
 const u32 pc_beep_verbs[] = {};
