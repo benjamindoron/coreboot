@@ -1,0 +1,2 @@
+Category: emulation
+Board URL: https://www.intel.com/content/www/us/en/developer/articles/tool/simics-simulator.html

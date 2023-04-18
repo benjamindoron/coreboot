@@ -1,0 +1,65 @@
+chip mainboard/emulation/simics-qsp
+	device cpu_cluster 0 on end
+	device domain 0 on
+		device pci 0.0 on ops nb_operations end
+		device pci 01.0 on end	# PCIE Root Port 1
+		device pci 02.0 on end	# PCIE Root Port 2
+		device pci 03.0 on end	# PCIE Root Port 3
+		device pci 04.0 on end	# PCIE Root Port 4
+		device pci 05.0 on end	# PCIE Root Port 5
+		#device pci 06.0 on end	# PCIE Root Port 6
+		device pci 07.0 on end	# PCIE Root Port 7
+		#device pci 08.0 on end	# PCIE Root Port 7
+		#device pci 09.0 on end	# PCIE Root Port 7
+		#device pci 0a.0 on end	# PCIE Root Port 7
+		device pci 0f.0 on end	# PCIE Root Port 7
+		device pci 10.0 on end # Physical and Link Layer 0
+		device pci 10.1 on end # Routing and Protocol Layer 0
+		device pci 11.0 on end # Physical and Link Layer 1
+		device pci 11.1 on end # Routing & Protocol Layer 1
+
+		device pci 13.0 on end # I/O Hub I/OxAPIC Interrupt Controller
+
+		device pci 14.0 on end # I/O Hub System Management Register
+		device pci 14.1 on end # I/O Hub GPIO Scratch Pad Register
+		device pci 14.2 on end # I/O Hub Control Status and RAS Registers
+		device pci 14.3 on end # I/O Hub Throttle Registers
+
+		chip southbridge/intel/i82801jx
+			device pci 19.0 on end # 82567LF-2 Gigabit
+
+			# src/mainboard/asus/p5ql-em/devicetree.cb
+			register "sata_port_map"	= "0x3f"
+
+			# Enable PCIe ports 0,1,3,4,5 as slots.
+			register "pcie_slot_implemented"	= "0x3b"
+
+			device pci 1a.0 on end # USB UHCI Controller #4
+			device pci 1a.1 on end # USB UHCI Controller #5
+			device pci 1a.2 on end # USB UHCI Controller #6
+			device pci 1a.7 on end # USB UHCI Controller #2
+
+			device pci 1b.0 off end # Intel(R) High Definition Audio Controller
+
+			device pci 1c.0 off end	# PCIe Port #1
+			device pci 1c.1 off end	# PCIe Port #2
+			device pci 1c.2 off end	# PCIe Port #3
+			device pci 1c.3 off end	# PCIe Port #4
+			device pci 1c.4 off end	# PCIe Port #5
+			device pci 1c.5 off end	# PCIe Port #6
+
+			device pci 1d.0 on end # USB UHCI Controller #1
+			device pci 1d.1 on end # USB UHCI Controller #2
+			device pci 1d.2 on end # USB UHCI Controller #3
+			device pci 1d.7 on end # USB2 UHCI Controller #1
+
+			device pci 1e.0 on end # 82801 PCI Bridge (rev a2)
+
+			device pci 1f.0 on end # ISA bridge
+			device pci 1f.2 on end # SATA controller
+			device pci 1f.3 on end # SMBus
+			device pci 1f.5 on end # SATA Controller #2^3
+			device pci 1f.6 on end # signal processing controller
+		end
+	end
+end
