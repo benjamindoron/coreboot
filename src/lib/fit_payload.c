@@ -2,6 +2,7 @@
 
 #include <boardid.h>
 #include <bootmem.h>
+#include <boot/upl_fdt_table.h>
 #include <cbmem.h>
 #include <commonlib/bsd/compression.h>
 #include <commonlib/region.h>
@@ -281,7 +282,7 @@ static int fit_allocate_firmware(struct prog *payload, struct fit_config_node *c
 	return 0;
 }
 
-static int load_secondaries(struct fit_config_node *config, struct region *primary)
+static int load_secondaries(struct fit_config_node *config, struct region *primary, struct device_tree *tree)
 {
 	struct region secondary_region;
 	struct fit_image_node *secondary_image;
@@ -315,6 +316,9 @@ static int load_secondaries(struct fit_config_node *config, struct region *prima
 			printk(BIOS_ERR, "Failed to extract %s.\n", secondary_image->name);
 			return -1;
 		}
+
+		if (CONFIG(HANDOFF_UPL_DEVICETREE) && config->firmware)
+			upl_fdt_add_secondary(tree, secondary_image->name, &secondary_region);
 	}
 
 	return 0;
@@ -341,7 +345,7 @@ static int fit_extract_firmware(struct prog *payload, struct fit_config_node *co
 		return -1;
 	}
 
-	if (extract(code, config->firmware) != 0 || load_secondaries(config, code) != 0) {
+	if (extract(code, config->firmware) != 0 || load_secondaries(config, code, dt) != 0) {
 		printk(BIOS_ERR, "Failed to extract firmware\n");
 		prog_set_entry(payload, NULL, NULL);
 		return -1;
@@ -368,6 +372,8 @@ void fit_payload(struct prog *payload, void *data)
 
 	if (config->fdt)
 		dt = unpack_fdt(config->fdt);
+	else if (CONFIG(HANDOFF_UPL_DEVICETREE) && config->firmware)
+		dt = fdt_unflatten(cbmem_find(CBMEM_ID_CBTABLE));
 	if (!dt) {
 		printk(BIOS_ERR, "Failed to unflatten the FDT.\n");
 		return;
@@ -387,7 +393,8 @@ void fit_payload(struct prog *payload, void *data)
 	/* Insert coreboot specific information */
 	add_cb_fdt_data(dt);
 
-	fit_update_memory(dt);
+	if (!CONFIG(HANDOFF_UPL_DEVICETREE) || !config->firmware)
+		fit_update_memory(dt);
 
 	/* Update device_tree */
 #if defined(CONFIG_LINUX_COMMAND_LINE)

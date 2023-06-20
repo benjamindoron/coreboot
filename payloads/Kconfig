@@ -189,4 +189,24 @@ config PAYLOAD_FIT_SUPPORT
 	  Enables FIT parser and devicetree patching. The FIT is non
 	  self-extracting and needs to have a compatible compression format.
 
+# payload none only implies that we don't build with a payload, but it can later be added via CBFS, which makes creating handoff still necessary.
+choice
+	prompt "Payload Handoff Selection"
+	default HANDOFF_COREBOOT_TABLES
+
+config HANDOFF_COREBOOT_TABLES
+	bool "Create coreboot Table handoff"
+	help
+	  Use coreboot tables as handoff to the payload. It is an easy,
+	  small and widely supported format for handoffs.
+
+config HANDOFF_UPL_DEVICETREE
+	bool "Create Universal Payload FDT handoff (experimental)"
+	select FLATTENED_DEVICE_TREE
+	help
+	  Use Universal Payload Flattened Device Tree as payload handoff.
+	  Its format is specified by the Universal Payload Specification.
+
+endchoice
+
 endmenu
