@@ -180,3 +180,9 @@ static const struct pci_driver qemu_qxl_driver __pci_driver = {
 	.vendor = 0x1b36,
 	.device = 0x0100,
 };
+
+static const struct pci_driver simic_stdvga_driver __pci_driver = {
+	.ops	= &qemu_graph_ops,
+	.vendor = 0x4321,
+	.device = 0x1111,
+};
