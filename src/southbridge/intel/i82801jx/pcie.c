@@ -9,9 +9,13 @@
 #include <southbridge/intel/common/pciehp.h>
 #include "chip.h"
 
+#define D28Fx_XCAP		0x42
+#define D28Fx_SLCAP		0x54
+
 static void pci_init(struct device *dev)
 {
 	struct southbridge_intel_i82801jx_config *config = dev->chip_info;
+	u8 slot_number = 1; /* Reserve slot number 0 for nb's PEG. */
 
 	printk(BIOS_DEBUG, "Initializing ICH10 PCIe root port.\n");
 
@@ -43,6 +47,10 @@ static void pci_init(struct device *dev)
 	pci_update_config16(dev, 0x06, ~0, 0);
 	pci_update_config16(dev, 0x1e, ~0, 0);
 
+	/* PCIe - BIOS must program... */
+	pci_or_config32(dev, 0x300, 1 << 21);
+	pci_write_config8(dev, 0x324, 0x40);
+
 	/* Get configured ASPM state */
 	const enum aspm_type apmc = pci_read_config32(dev, 0x50) & 3;
 
@@ -55,6 +63,32 @@ static void pci_init(struct device *dev)
 		pci_or_config32(dev, 0xd8, 1 << 30);
 		pci_write_config16(dev, 0x42, 0x142);
 	}
+
+	/* Set slot implemented, slot number and slot power limits. */
+	u32 xcap = pci_read_config32(dev, D28Fx_XCAP);
+	u8 slot = PCI_FUNC(dev->path.pci.devfn);
+	if (config->pcie_slot_implemented & (1 << slot))
+		xcap |=  PCI_EXP_FLAGS_SLOT;
+	else
+		xcap &= ~PCI_EXP_FLAGS_SLOT;
+	pci_write_config32(dev, D28Fx_XCAP, xcap);
+
+	if (config->pcie_slot_implemented & (1 << slot)) {
+		u32 slcap = pci_read_config32(dev, D28Fx_SLCAP);
+		slcap &= ~(0x1fff << 19);
+		slcap |=  (slot_number++ << 19);
+		slcap &= ~(0x0003 << 16);
+		slcap |=  (config->pcie_power_limits[slot].scale << 16);
+		slcap &= ~(0x00ff <<  7);
+		slcap |=  (config->pcie_power_limits[slot].value <<  7);
+		pci_write_config32(dev, D28Fx_SLCAP, slcap);
+	}
+}
+
+static void pci_final(struct device *dev)
+{
+	/* Lock R/WO ASPM support bits. */
+	pci_update_config32(dev, 0x4c, ~0, 0);
 }
 
 static void pch_pciexp_scan_bridge(struct device *dev)
@@ -74,6 +108,7 @@ static struct device_operations device_ops = {
 	.set_resources		= pci_dev_set_resources,
 	.enable_resources	= pci_bus_enable_resources,
 	.init			= pci_init,
+	.final			= pci_final,
 	.scan_bus		= pch_pciexp_scan_bridge,
 	.ops_pci		= &pci_dev_ops_pci,
 };

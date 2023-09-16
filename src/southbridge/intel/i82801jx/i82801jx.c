@@ -13,7 +13,8 @@ typedef struct southbridge_intel_i82801jx_config config_t;
 static void i82801jx_enable_device(struct device *dev)
 {
 	/* Enable SERR */
-	pci_or_config16(dev, PCI_COMMAND, PCI_COMMAND_SERR);
+	if (dev->enabled)
+		pci_or_config16(dev, PCI_COMMAND, PCI_COMMAND_SERR);
 }
 
 static void i82801jx_early_settings(const config_t *const info)
@@ -33,49 +34,20 @@ static void i82801jx_early_settings(const config_t *const info)
 static void i82801jx_pcie_init(const config_t *const info)
 {
 	struct device *pciePort[6];
-	int i, slot_number = 1; /* Reserve slot number 0 for nb's PEG. */
+	int i;
 
-	/* PCIe - BIOS must program... */
 	for (i = 0; i < 6; ++i) {
 		pciePort[i] = pcidev_on_root(0x1c, i);
 		if (!pciePort[i]) {
 			printk(BIOS_EMERG, "PCIe port 00:1c.%x", i);
 			die(" is not listed in devicetree.\n");
 		}
-		pci_or_config32(pciePort[i], 0x300, 1 << 21);
-		pci_write_config8(pciePort[i], 0x324, 0x40);
 	}
-
 	for (i = 5; (i >= 0) && !pciePort[i]->enabled; --i) {
 		/* Only for the top disabled ports. */
-		pci_or_config32(pciePort[i], 0x300, 0x3 << 16);
+		// THIS BREAKS IN SIMICS
+		//pci_or_config32(pciePort[i], 0x300, 0x3 << 16);
 	}
-
-	/* Set slot implemented, slot number and slot power limits. */
-	for (i = 0; i < 6; ++i) {
-		struct device *const dev = pciePort[i];
-		u32 xcap = pci_read_config32(dev, D28Fx_XCAP);
-		if (info->pcie_slot_implemented & (1 << i))
-			xcap |=  PCI_EXP_FLAGS_SLOT;
-		else
-			xcap &= ~PCI_EXP_FLAGS_SLOT;
-		pci_write_config32(dev, D28Fx_XCAP, xcap);
-
-		if (info->pcie_slot_implemented & (1 << i)) {
-			u32 slcap = pci_read_config32(dev, D28Fx_SLCAP);
-			slcap &= ~(0x1fff << 19);
-			slcap |=  (slot_number++ << 19);
-			slcap &= ~(0x0003 << 16);
-			slcap |=  (info->pcie_power_limits[i].scale << 16);
-			slcap &= ~(0x00ff <<  7);
-			slcap |=  (info->pcie_power_limits[i].value <<  7);
-			pci_write_config32(dev, D28Fx_SLCAP, slcap);
-		}
-	}
-
-	/* Lock R/WO ASPM support bits. */
-	for (i = 0; i < 6; ++i)
-		pci_update_config32(pciePort[i], 0x4c, ~0, 0);
 }
 
 static void i82801jx_ehci_init(void)
@@ -93,10 +65,10 @@ static void i82801jx_ehci_init(void)
 		 restore these settings across S3. */
 	reg32 = pci_read_config32(pciEHCI1, 0xfc);
 	pci_write_config32(pciEHCI1, 0xfc, (reg32 & ~(3 << 2)) |
-					   (1 << 29) | (1 << 17) | (2 << 2));
+						(1 << 29) | (1 << 17) | (2 << 2));
 	reg32 = pci_read_config32(pciEHCI2, 0xfc);
 	pci_write_config32(pciEHCI2, 0xfc, (reg32 & ~(3 << 2)) |
-					   (1 << 29) | (1 << 17) | (2 << 2));
+						(1 << 29) | (1 << 17) | (2 << 2));
 }
 
 static int i82801jx_function_disabled(const unsigned int devfn)
@@ -155,7 +127,9 @@ static void i82801jx_hide_functions(void)
 	}
 	RCBA32(RCBA_FD) = reg32;
 	RCBA32(RCBA_FD) |= (1 << 0); /* BIOS must write this... */
-	RCBA32(RCBA_FDSW) |= (1 << 7); /* Lock function-disable? */
+
+	// doesn't look like a valid ICH10 register...
+	//RCBA32(RCBA_FDSW) |= (1 << 7); /* Lock function-disable? */
 
 	/* Hide PCIe root port PCI functions. RPFN is partially R/WO. */
 	reg32 = RCBA32(RCBA_RPFN);
