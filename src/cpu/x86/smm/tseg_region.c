@@ -17,6 +17,8 @@
  *     +-------------------------+
  *     |      code and data      |
  *     |         (TSEG)          |
+ *     +-------------------------+
+ *     | (optional payload area) |
  *     +-------------------------+ TSEG
  */
 int smm_subregion(int sub, uintptr_t *start, size_t *size)
@@ -33,14 +35,24 @@ int smm_subregion(int sub, uintptr_t *start, size_t *size)
 	else
 		return -1;
 
+#if CONFIG(PAYLOAD_MM_INTERFACE)
+	const size_t payload_size = (sub_size - (ied_size + cache_size)) / 2;
+#else
+	const size_t payload_size = 0;
+#endif
+
 	ASSERT(IS_ALIGNED(sub_base, sub_size));
-	ASSERT(sub_size > (cache_size + ied_size));
+	ASSERT(sub_size > (payload_size + cache_size + ied_size));
 
 	switch (sub) {
+	case SMM_SUBREGION_PAYLOAD:
+		/* Payload starts at the base of TSEG. This allows granular protection. */
+		sub_size = payload_size;
+		break;
 	case SMM_SUBREGION_HANDLER:
-		/* Handler starts at the base of TSEG. */
-		sub_size -= ied_size;
-		sub_size -= cache_size;
+		/* Handler follows payload subregion. */
+		sub_base += payload_size;
+		sub_size -= (ied_size + cache_size + payload_size);
 		break;
 	case SMM_SUBREGION_CACHE:
 		/* External cache is in the middle of TSEG. */

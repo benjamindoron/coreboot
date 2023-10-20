@@ -205,6 +205,8 @@ static inline void aseg_region(uintptr_t *start, size_t *size)
 }
 
 enum {
+	/* Payload SMM area. */
+	SMM_SUBREGION_PAYLOAD,
 	/* SMM handler area. */
 	SMM_SUBREGION_HANDLER,
 	/* SMM cache region. */
