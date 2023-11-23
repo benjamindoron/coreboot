@@ -53,11 +53,6 @@ static void qemu_nb_read_resources(struct device *dev)
 
 	mmconf_resource(dev, 2);
 
-	if (CONFIG(ARCH_RAMSTAGE_X86_64)) {
-		/* Reserve page tables in DRAM. FIXME: Remove once x86_64 page tables reside in CBMEM */
-		reserved_ram_range(dev, 0, CONFIG_ARCH_X86_64_PGTBL_LOC, 6 * 0x1000);
-	}
-
 	smm_region(&tseg_base, &tseg_size);
 	reserved_ram_range(dev, ESMRAMC, tseg_base, tseg_size);
 }
