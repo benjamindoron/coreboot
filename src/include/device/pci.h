@@ -96,6 +96,7 @@ struct resource *pci_get_resource(struct device *dev, unsigned long index);
 void pci_dev_set_subsystem(struct device *dev, unsigned int vendor,
 	unsigned int device);
 void pci_dev_init(struct device *dev);
+int device_id_match(struct pci_driver *driver, unsigned short device_id);
 unsigned int pci_match_simple_dev(struct device *dev, pci_devfn_t sdev);
 uint16_t pci_find_cap_recursive(const struct device *dev, uint16_t cap);
 bool pci_has_pme_pin(const struct device *dev);

@@ -988,7 +988,7 @@ static struct device_operations *get_pci_bridge_ops(struct device *dev)
  * @param driver pointer to the PCI driver entry being checked
  * @param device_id PCI device ID of the device being matched
  */
-static int device_id_match(struct pci_driver *driver, unsigned short device_id)
+int device_id_match(struct pci_driver *driver, unsigned short device_id)
 {
 	if (driver->devices) {
 		unsigned short check_id;
