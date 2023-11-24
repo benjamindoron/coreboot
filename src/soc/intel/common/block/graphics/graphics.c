@@ -484,3 +484,17 @@ static const struct pci_driver graphics_driver __pci_driver = {
 	.vendor		= PCI_VID_INTEL,
 	.devices	= pci_device_ids,
 };
+
+/*
+ * Some VGA option roms are used for several chipsets but they only have one PCI ID in their
+ * header. If we encounter such an option rom, we need to do the mapping ourselves.
+ */
+u32 map_oprom_vendev(u32 vendev)
+{
+	uint16_t device_id = vendev & 0xffff;
+
+	if (device_id_match((struct pci_driver *)&graphics_driver, device_id))
+		return 0x80860406;
+
+	return vendev;
+}
