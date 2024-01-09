@@ -82,6 +82,10 @@ enum {
 	LB_TAG_PLATFORM_BLOB_VERSION	= 0x0038,
 	LB_TAG_SMMSTOREV2		= 0x0039,
 	LB_TAG_TPM_PPI_HANDOFF		= 0x003a,
+	LB_TAG_PLD_MM_INTERFACE_INFO    = 0x003b,
+	LB_TAG_PAYLOAD_MM_SMRAM_REGION  = 0x003c,
+	LB_TAG_PAYLOAD_MM_SHARED_MEM    = 0x003d,
+	LB_TAG_PLD_SPI_FLASH_INFO       = 0x003e,
 	LB_TAG_BOARD_CONFIG		= 0x0040,
 	LB_TAG_ACPI_CNVS		= 0x0041,
 	LB_TAG_TYPE_C_INFO		= 0x0042,
@@ -585,6 +589,73 @@ struct lb_tpm_physical_presence {
 	uint8_t pad[2];
 };
 
+/*
+ * SMM registers information structure
+ */
+enum lb_pld_efi_acpi_3_0_memory_types {
+	PLD_EFI_ACPI_3_0_SYSTEM_MEMORY = 0,
+	PLD_EFI_ACPI_3_0_SYSTEM_IO,
+	PLD_EFI_ACPI_3_0_PCI_CONFIGURATION_SPACE,
+};
+
+struct lb_pld_generic_register {
+	uint8_t register_id;
+	uint8_t address_space_id;
+	uint8_t register_bit_width;
+	uint8_t register_bit_offset;
+	// TODO: Reduced from uint64_t and dropped an access_size field
+	uint32_t value;
+	lb_uint64_t address;
+};
+
+/*
+ * MM interface info structure
+ */
+struct lb_pld_mm_interface_info {
+	uint32_t tag;
+	uint32_t size;
+	uint8_t revision;
+	uint8_t requires_long_mode_call;
+	uint8_t register_mm_entry_swsmi;
+	uint8_t pad;
+};
+
+/*
+ * Payload MM SMRAM region handoff
+ */
+struct lb_pld_smram_descriptor {
+	lb_uint64_t physical_start;
+	lb_uint64_t physical_size;
+	lb_uint64_t region_state;
+};
+
+struct lb_payload_mm_smram_region {
+	uint32_t tag;
+	uint32_t size;
+	uint32_t number_of_smm_regions;
+	struct lb_pld_smram_descriptor descriptor[1];
+};
+
+/*
+ * Payload MM shared memory address
+ */
+struct lb_payload_mm_shared_mem {
+	uint32_t tag;
+	uint32_t size;
+	struct lb_pld_smram_descriptor comm_buffer;
+};
+
+/*
+ * SPI flash info structure
+ */
+#define FLAGS_SPI_DISABLE_SMM_WRITE_PROTECT (1 << 0)
+struct lb_pld_spi_flash_info {
+	uint32_t tag;
+	uint32_t size;
+	uint16_t revision;
+	uint16_t flags;
+	struct lb_pld_generic_register spi_address;
+};
 
 /*
  * Handoff the ACPI RSDP

@@ -1,7 +1,10 @@
 ## SPDX-License-Identifier: GPL-2.0-only
 
 config PAYLOAD_MM_INTERFACE
-	bool
+	bool "Support coreboot-mediated payload MM"
+	depends on HAVE_SMI_HANDLER
+	# Needed by `smmstore_lookup_region` helper function to EFIVARS option system.
+	select SPI_FLASH_SMM if BOOT_DEVICE_SPI_FLASH_RW_NOMMAP
 	default n
 	help
 	  Implements coreboot-to-payload compatibility layers for sharing SMM. coreboot will
@@ -9,3 +12,11 @@ config PAYLOAD_MM_INTERFACE
 	  An example use-case is enabling EDK2 Secure Boot with Authenticated Variables.
 
 	  Select N if unsure.
+
+if !SMMSTORE && PAYLOAD_MM_INTERFACE
+
+# Initialise size of reused "SMMSTORE" FMAP region for native SPI services
+config SMMSTORE_SIZE
+	default 0x40000
+
+endif

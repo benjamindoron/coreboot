@@ -22,6 +22,7 @@ CFR <cfr.md>
 CFR use within coreboot <cfr_internal.md>
 Intel DPTF <dptf.md>
 IPMI KCS <ipmi_kcs.md>
+Payload MM Interface <payload_mm_interface/index.md>
 SMMSTORE <smmstore.md>
 SMMSTOREv2 <smmstorev2.md>
 SoundWire <soundwire.md>
