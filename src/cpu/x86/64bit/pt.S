@@ -7,6 +7,12 @@
  * Page table attributes: WB, User+Supervisor, Present, Writeable, Accessed, Dirty
  */
 
+#if CONFIG(PAGE_TABLES_IN_CBFS)
+#if (CONFIG_ARCH_X86_64_PGTBL_LOC & 0xfff) > 0
+#error pagetables must be 4KiB aligned!
+#endif
+#endif
+
 .section .rodata
 #define _PRES (1ULL << 0)
 #define _RW   (1ULL << 1)

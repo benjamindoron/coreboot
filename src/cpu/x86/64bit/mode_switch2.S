@@ -20,8 +20,15 @@ long_mode_call_3arg:
 	/* Backup stack pointer */
 	mov	%esp, %ebp
 
+	/* Get page table address */
+	movl	page_tables, %eax
+	cmp	%eax, 0
+	jne	1f
+	movl	$PM4LE, %eax
+
+1:
 	/* Enter long mode, preserves ebx */
-	setup_longmode $PML4E
+	setup_longmode %eax
 
 	/* Align stack */
 	movabs	$0xfffffffffffffff0, %rax
