@@ -87,7 +87,8 @@ clean:
 	test -d seabios/out && rm -rf seabios/out || exit 0
 
 distclean:
-	rm -rf seabios
+	echo "    Refusing to delete SeaBIOS working directory"
+#	rm -rf seabios
 
 print-repo-info:
 	echo "$(project_git_repo) $(project_dir)"

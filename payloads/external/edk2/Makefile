@@ -192,11 +192,11 @@ $(EDK2_PLATFORMS_PATH): $(WORKSPACE)
 	cd $(EDK2_PLATFORMS_PATH); \
 		if ! git rev-parse --verify -q $(CONFIG_EDK2_PLATFORMS_TAG_OR_REV)^{object} >/dev/null; then \
 			echo "    $(CONFIG_EDK2_PLATFORMS_TAG_OR_REV) is not a valid git reference"; \
-			exit 1; \
+#			exit 1; \
 		fi; \
 		if git status --ignore-submodules=dirty | grep -q "nothing to commit, working tree clean"; then \
 			echo "    Checking out edk2-platforms revision $(CONFIG_EDK2_PLATFORMS_TAG_OR_REV)"; \
-			git checkout --detach $(CONFIG_EDK2_PLATFORMS_TAG_OR_REV) -f; \
+#			git checkout --detach $(CONFIG_EDK2_PLATFORMS_TAG_OR_REV) -f; \
 		else \
 			echo "    Working directory not clean; will not overwrite"; \
 		fi; \
@@ -212,11 +212,11 @@ $(EDK2_PATH): $(WORKSPACE)
 		git fetch origin 2>/dev/null; \
 		if ! git rev-parse --verify -q $(CONFIG_EDK2_TAG_OR_REV)^{object} >/dev/null; then \
 			echo "    $(CONFIG_EDK2_TAG_OR_REV) is not a valid git reference"; \
-			exit 1; \
+#			exit 1; \
 		fi; \
 		if git status --ignore-submodules=dirty | grep -q -e clean -e "nothing added"; then \
 			echo "    Checking out $(project_name) revision $(CONFIG_EDK2_TAG_OR_REV)"; \
-			git checkout --detach $(CONFIG_EDK2_TAG_OR_REV) -f; \
+#			git checkout --detach $(CONFIG_EDK2_TAG_OR_REV) -f; \
 			git submodule update --checkout --recursive; \
 		else \
 			echo "    Working directory not clean; will not overwrite"; \
@@ -323,6 +323,7 @@ clean:
 	test -d $(WORKSPACE) && (cd $(WORKSPACE); rm -rf Build; rm -f Conf/tools_def.txt) || exit 0
 
 distclean:
-	rm -rf $(WORKSPACE)
+	echo "    Refusing to delete TianoCore workspace directory"
+#	rm -rf $(WORKSPACE)
 
 .PHONY: $(EDK2_PATH) checktools logo UefiPayloadPkg UniversalPayload clean distclean
