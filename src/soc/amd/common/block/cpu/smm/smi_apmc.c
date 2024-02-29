@@ -8,6 +8,7 @@
 #include <cpu/amd/amd64_save_state.h>
 #include <cpu/x86/smm.h>
 #include <elog.h>
+#include <payload_mm_interface.h>
 #include <smmstore.h>
 #include <types.h>
 
@@ -91,6 +92,26 @@ void handle_smi_store(void)
 	io_smi->rax = smmstore_exec(sub_command, (void *)(uintptr_t)reg_ebx);
 }
 
+void handle_smi_payload(void)
+{
+	amd64_smm_state_save_area_t *io_smi;
+	u8 sub_command;
+	u32 argument;
+
+	io_smi = find_save_state(APM_CNT_PAYLOAD_MM);
+	if (!io_smi)
+		return;
+
+	/* Command and return value in EAX */
+	sub_command = (io_smi->rax >> 8) & 0xff;
+
+	/* MM entrypoint address in RBX */
+	argument = io_smi->rbx;
+
+	/* drivers/payload_mm_interface/mm_core_support.c */
+	io_smi->rax = payload_mm_exec_interface(sub_command, (void *)(uintptr_t)argument);
+}
+
 void fch_apmc_smi_handler(void)
 {
 	const uint8_t cmd = apm_get_apmc();
@@ -111,10 +132,17 @@ void fch_apmc_smi_handler(void)
 		if (CONFIG(SMMSTORE))
 			handle_smi_store();
 	break;
+	case APM_CNT_PAYLOAD_MM:
+		if (CONFIG(PAYLOAD_MM_INTERFACE))
+			handle_smi_payload();
+	break;
 	case APM_CNT_SMMINFO:
 		psp_notify_smm();
 		break;
 	}
 
 	mainboard_smi_apmc(cmd);
+
+	if (CONFIG(PAYLOAD_MM_INTERFACE))
+		payload_mm_call_entrypoint();
 }
