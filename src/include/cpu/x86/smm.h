@@ -181,6 +181,11 @@ int smm_setup_stack(const uintptr_t perm_smbase, const size_t perm_smram_size,
 int smm_setup_relocation_handler(struct smm_loader_params *params);
 int smm_load_module(uintptr_t smram_base, size_t smram_size, struct smm_loader_params *params);
 
+void soc_post_boot_smram_unlock(void);
+enum cb_err post_boot_smram_unlock(void);
+void soc_post_boot_smram_lock(void);
+enum cb_err post_boot_smram_lock(void);
+
 u32 smm_get_cpu_smbase(unsigned int cpu_num);
 
 /* Backup and restore default SMM region. */
