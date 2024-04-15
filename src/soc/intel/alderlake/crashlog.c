@@ -33,7 +33,6 @@ static uintptr_t sram_get_bar(void)
 {
 	uintptr_t sram_bar;
 	const struct device *dev;
-	struct resource *res;
 
 	dev = pcidev_path_on_root(PCH_DEVFN_SRAM);
 	if (!dev) {
@@ -41,14 +40,12 @@ static uintptr_t sram_get_bar(void)
 		return 0;
 	}
 
-	res = probe_resource(dev, PCI_BASE_ADDRESS_0);
-	if (!res) {
+	sram_bar = pci_read_config32(SA_DEV_TMT, PCI_BASE_ADDRESS_0) &
+			~PCI_BASE_ADDRESS_MEM_ATTR_MASK;
+	if (!sram_bar) {
 		printk(BIOS_ERR, "PCH SRAM device not found!\n");
 		return 0;
 	}
-
-	/* Get the base address of the resource */
-	sram_bar = res->base;
 
 	return sram_bar;
 }
@@ -230,6 +227,8 @@ static bool cpu_cl_gen_discovery_table(void)
 
 bool cpu_cl_discovery(void)
 {
+	u32 base_addr = 0;
+
 	memset(&cpu_cl_devsc_cap, 0, sizeof(tel_crashlog_devsc_cap_t));
 
 	if (!cpu_cl_get_capability(&cpu_cl_devsc_cap)) {
@@ -240,8 +239,12 @@ bool cpu_cl_discovery(void)
 
 	m_cpu_crashLog_support = true;
 
-	const struct resource *res = find_resource(SA_DEV_TMT, PCI_BASE_ADDRESS_0);
-	printk(BIOS_DEBUG, "cpu crashlog bar addr: 0x%llX\n", res->base);
+	/* Resource may be indicated by the SRAM device. Enable these together. */
+	const struct device *dev = pcidev_path_on_root(PCH_DEVFN_SRAM);
+	if (dev)
+		base_addr = pci_read_config32(SA_DEV_TMT, PCI_BASE_ADDRESS_0) &
+				~PCI_BASE_ADDRESS_MEM_ATTR_MASK;
+	printk(BIOS_DEBUG, "cpu crashlog bar addr: 0x%X\n", base_addr);
 
 	if (!cpu_cl_gen_discovery_table()) {
 		printk(BIOS_ERR, "CPU crashlog discovery table not valid.\n");
