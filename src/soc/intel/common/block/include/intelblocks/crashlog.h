@@ -218,6 +218,9 @@ bool discover_crashlog(void);
 bool cl_copy_data_from_sram(uintptr_t src_bar, u32 offset, size_t size, u32 *dest_addr,
 				u32 buffer_index, bool pmc_sram);
 void collect_pmc_and_cpu_crashlog_from_srams(cl_node_t *head);
+void early_cl_enable_bars(void);
+void early_cl_disable_bars(void);
+void early_dump_pmc_and_cpu_crashlog_from_srams(void);
 static const EFI_GUID FW_ERR_SECTION_GUID = {
 	0x81212a96, 0x09ed, 0x4996,
 	{ 0x94, 0x71, 0x8d, 0x72, 0x9c, 0x8e, 0x69, 0xed }
