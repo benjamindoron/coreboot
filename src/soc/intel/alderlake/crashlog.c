@@ -23,6 +23,26 @@ static pmc_crashlog_desc_table_t descriptor_table;
 static tel_crashlog_devsc_cap_t cpu_cl_devsc_cap;
 static cpu_crashlog_discovery_table_t cpu_cl_disc_tab;
 
+void early_cl_enable_bars(void)
+{
+	/* Set CrashLog BARs */
+	pci_write_config32(SA_DEV_TMT, PCI_BASE_ADDRESS_0, (uint32_t)PCH_TEMPORARY_ADDRESS);
+	pci_write_config32(SA_DEV_TMT, PCI_BASE_ADDRESS_1, 0);
+
+	/* Enable CrashLog memory-access */
+	pci_write_config16(SA_DEV_TMT, PCI_COMMAND, PCI_COMMAND_MEMORY);
+}
+
+void early_cl_disable_bars(void)
+{
+	/* Clear CrashLog BARs */
+	pci_write_config32(SA_DEV_TMT, PCI_BASE_ADDRESS_0, 0);
+	pci_write_config32(SA_DEV_TMT, PCI_BASE_ADDRESS_1, 0);
+
+	/* Disable CrashLog memory-access */
+	pci_write_config16(SA_DEV_TMT, PCI_COMMAND, 0);
+}
+
 uintptr_t __weak cl_get_cpu_mb_int_addr(void)
 {
 	return CRASHLOG_MAILBOX_INTF_ADDRESS;

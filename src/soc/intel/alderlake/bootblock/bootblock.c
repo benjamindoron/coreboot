@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 
 #include <bootblock_common.h>
+#include <intelblocks/crashlog.h>
 #include <intelblocks/fast_spi.h>
 #include <intelblocks/systemagent.h>
 #include <intelblocks/tco.h>
@@ -26,8 +27,12 @@ void bootblock_soc_early_init(void)
 void bootblock_soc_init(void)
 {
 	report_platform_info();
+
 	bootblock_pch_init();
 
 	/* Programming TCO_BASE_ADDRESS and TCO Timer Halt */
 	tco_configure();
+
+	if (CONFIG(SOC_INTEL_CRASHLOG))
+		early_dump_pmc_and_cpu_crashlog_from_srams();
 }

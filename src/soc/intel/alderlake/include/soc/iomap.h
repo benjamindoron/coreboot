@@ -100,6 +100,10 @@
 #define EARLY_I2C_BASE_ADDRESS	0xfe020000
 #define EARLY_I2C_BASE(x)	(EARLY_I2C_BASE_ADDRESS + (0x2000 * (x)))
 
+/* May be used for any purpose, but known to be used by the FSP. */
+#define PCH_TEMPORARY_ADDRESS	0xfe600000
+#define PCH_TEMPORARY_SIZE	0x200000
+
 #define IOM_BASE_ADDRESS	0xfbc10000
 #define IOM_BASE_SIZE		0x1600
 
