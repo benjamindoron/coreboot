@@ -15,16 +15,21 @@ struct fit_image_node {
 	void *data;
 	uint32_t size;
 	int compression;
+	uint32_t uncompressed_size;
+	uintptr_t load_address;
+	uintptr_t entrypoint_address;
 
 	struct list_node list_node;
 };
 
 struct fit_config_node {
 	const char *name;
+	struct fit_image_node *firmware;
 	struct fit_image_node *kernel;
 	struct fit_image_node *fdt;
 	struct list_node overlays;
 	struct fit_image_node *ramdisk;
+	struct list_node secondary_images;
 	struct fdt_property compat;
 	int compat_rank;
 	int compat_pos;
@@ -33,8 +38,8 @@ struct fit_config_node {
 	struct list_node list_node;
 };
 
-struct fit_overlay_chain {
-	struct fit_image_node *overlay;
+struct fit_image_chain {
+	struct fit_image_node *image;
 	struct list_node list_node;
 };
 
@@ -64,14 +69,14 @@ void fit_update_memory(struct device_tree *tree);
  * @param kernel out-argument where to place the kernel
  * @param fdt out-argument where to place the devicetree
  * @param initrd out-argument where to place the initrd (optional)
- * @return True if all config nodes could be placed, the corresponding
+ * @return 0 if all config nodes could be placed, the corresponding
  *         regions have been updated and the entry point has been set.
- *         False on error.
+ *         -1 on error.
  */
-bool fit_payload_arch(struct prog *payload, struct fit_config_node *config,
-		      struct region *kernel,
-		      struct region *fdt,
-		      struct region *initrd);
+int fit_linux_arch_quirks(struct prog *payload, struct fit_config_node *config,
+			   struct region *kernel,
+			   struct region *fdt,
+			   struct region *initrd);
 
 /*
  * Unpack a FIT image into memory, choosing the right configuration through the

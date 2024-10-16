@@ -34,8 +34,8 @@ static struct {
 	u32 canary;
 } scratch;
 
-/* Returns true if decompressing was successful and it looks like a kernel. */
-static bool decompress_kernel_header(const struct fit_image_node *node)
+/* Returns 0 if decompressing was successful and it looks like a kernel. */
+static int decompress_kernel_header(const struct fit_image_node *node)
 {
 	/* Partially decompress to get text_offset. Can't check for errors. */
 	scratch.canary = SCRATCH_CANARY_VALUE;
@@ -53,7 +53,7 @@ static bool decompress_kernel_header(const struct fit_image_node *node)
 		break;
 	default:
 		printk(BIOS_ERR, "Unsupported compression algorithm!\n");
-		return false;
+		return -1;
 	}
 
 	/* Should never happen, but if it does we'll want to know. */
@@ -63,7 +63,7 @@ static bool decompress_kernel_header(const struct fit_image_node *node)
 	if (scratch.header.magic != KERNEL_HEADER_MAGIC) {
 		printk(BIOS_ERR, "Invalid kernel magic: %#.8x\n != %#.8x\n",
 		       scratch.header.magic, KERNEL_HEADER_MAGIC);
-		return false;
+		return -1;
 	}
 
 	/**
@@ -76,7 +76,7 @@ static bool decompress_kernel_header(const struct fit_image_node *node)
 	if (!scratch.header.image_size)
 		scratch.header.text_offset = cpu_to_le64(0x80000);
 
-	return true;
+	return 0;
 }
 
 static size_t get_kernel_size(const struct fit_image_node *node)
@@ -160,18 +160,18 @@ static bool fit_place_mem(const struct range_entry *r, void *arg)
 	return true;
 }
 
-bool fit_payload_arch(struct prog *payload, struct fit_config_node *config,
-		      struct region *kernel,
-		      struct region *fdt,
-		      struct region *initrd)
+int fit_linux_arch_quirks(struct prog *payload, struct fit_config_node *config,
+			   struct region *kernel,
+			   struct region *fdt,
+			   struct region *initrd)
 {
 	bool place_anywhere;
 	void *arg = NULL;
 
-	if (!decompress_kernel_header(config->kernel)) {
+	if (decompress_kernel_header(config->kernel) != 0) {
 		printk(BIOS_CRIT, "Payload doesn't look like an ARM64"
 		       " kernel Image.\n");
-		return false;
+		return -1;
 	}
 
 	/* Update kernel size from image header, if possible */
@@ -188,7 +188,7 @@ bool fit_payload_arch(struct prog *payload, struct fit_config_node *config,
 	 */
 
 	if (!bootmem_walk(fit_place_kernel, kernel))
-		return false;
+		return -1;
 
 	/* Mark as reserved for future allocations. */
 	bootmem_add_range(kernel->offset, kernel->size, BM_MEM_PAYLOAD);
@@ -213,7 +213,7 @@ bool fit_payload_arch(struct prog *payload, struct fit_config_node *config,
 			initrd->offset = kernel->offset + kernel->size;
 
 		if (!bootmem_walk(fit_place_mem, initrd))
-			return false;
+			return -1;
 		/* Mark as reserved for future allocations. */
 		bootmem_add_range(initrd->offset, initrd->size, BM_MEM_PAYLOAD);
 	}
@@ -225,7 +225,7 @@ bool fit_payload_arch(struct prog *payload, struct fit_config_node *config,
 		fdt->offset = kernel->offset + kernel->size;
 
 	if (!bootmem_walk(fit_place_mem, fdt))
-		return false;
+		return -1;
 	/* Mark as reserved for future allocations. */
 	bootmem_add_range(fdt->offset, fdt->size, BM_MEM_PAYLOAD);
 
@@ -236,5 +236,5 @@ bool fit_payload_arch(struct prog *payload, struct fit_config_node *config,
 
 	bootmem_dump_ranges();
 
-	return true;
+	return 0;
 }

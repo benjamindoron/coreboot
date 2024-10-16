@@ -59,17 +59,17 @@ static bool fit_place_mem(const struct range_entry *r, void *arg)
 	return true;
 }
 
-bool fit_payload_arch(struct prog *payload, struct fit_config_node *config,
-		      struct region *kernel,
-		      struct region *fdt,
-		      struct region *initrd)
+int fit_linux_arch_quirks(struct prog *payload, struct fit_config_node *config,
+			   struct region *kernel,
+			   struct region *fdt,
+			   struct region *initrd)
 {
 	void *arg = NULL;
 
 	if (!config->fdt || !fdt) {
 		printk(BIOS_CRIT, "Providing a valid FDT is mandatory to "
 		       "boot a RISC-V kernel!\n");
-		return false;
+		return -1;
 		/* TODO: Fall back to the ROM FDT? */
 	}
 
@@ -87,7 +87,7 @@ bool fit_payload_arch(struct prog *payload, struct fit_config_node *config,
 	 */
 	kernel->offset = 0;
 	if (!bootmem_walk(fit_place_mem, kernel))
-		return false;
+		return -1;
 
 	/* Mark as reserved for future allocations. */
 	bootmem_add_range(kernel->offset, kernel->size, BM_MEM_PAYLOAD);
@@ -99,7 +99,7 @@ bool fit_payload_arch(struct prog *payload, struct fit_config_node *config,
 		initrd->offset = kernel->offset + kernel->size;
 
 		if (!bootmem_walk(fit_place_mem, initrd))
-			return false;
+			return -1;
 		/* Mark as reserved for future allocations. */
 		bootmem_add_range(initrd->offset, initrd->size, BM_MEM_PAYLOAD);
 	}
@@ -108,7 +108,7 @@ bool fit_payload_arch(struct prog *payload, struct fit_config_node *config,
 	fdt->offset = kernel->offset + kernel->size;
 
 	if (!bootmem_walk(fit_place_mem, fdt))
-		return false;
+		return -1;
 	/* Mark as reserved for future allocations. */
 	bootmem_add_range(fdt->offset, fdt->size, BM_MEM_PAYLOAD);
 
@@ -119,5 +119,5 @@ bool fit_payload_arch(struct prog *payload, struct fit_config_node *config,
 
 	bootmem_dump_ranges();
 
-	return true;
+	return 0;
 }
