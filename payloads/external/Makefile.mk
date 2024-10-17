@@ -210,7 +210,7 @@ $(obj)/UEFIPAYLOAD.fd: $(DOTCONFIG)
 		OBJCOPY_arm64=$(OBJCOPY_arm64) \
 		MFLAGS= MAKEFLAGS=
 
-$(obj)/ShimmedUniversalPayload.elf: $(DOTCONFIG)
+$(obj)/UniversalPayload.fit: $(DOTCONFIG)
 	$(MAKE) -C payloads/external/edk2 UniversalPayload \
 		HOSTCC="$(HOSTCC)" \
 		CC="$(HOSTCC)" \

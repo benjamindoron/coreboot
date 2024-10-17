@@ -38,8 +38,6 @@ BUILD_STR += -s
 endif
 endif
 
-BUILD_STR += -D BUILD_ARCH=X64
-
 #
 # EDK II (edk2/master) has the following build options relevant to coreboot:
 #
@@ -210,9 +208,6 @@ $(EDK2_PATH): $(WORKSPACE)
 	fi
 	cd $(EDK2_PATH); \
 		git checkout MdeModulePkg/Logo/Logo.bmp > /dev/null 2>&1 || true; \
-		if [ -e UefiPayloadPkg/ShimLayer/UniversalPayload.o ]; then \
-			rm UefiPayloadPkg/ShimLayer/UniversalPayload.o; \
-		fi; \
 		echo "    Fetching new commits from $(CONFIG_EDK2_REPOSITORY)"; \
 		git fetch origin 2>/dev/null; \
 		if ! git rev-parse --verify -q $(CONFIG_EDK2_TAG_OR_REV)^{object} >/dev/null; then \
@@ -291,7 +286,7 @@ $(WORKSPACE)/Build/UefiPayloadPkgX64/$(RELEASE_STR)_GCC/FV/UEFIPAYLOAD.fd: \
 	cd $(WORKSPACE); \
 		source $(EDK2_PATH)/edksetup.sh; \
 		echo -n "EDK2: Building... "; \
-		build -a IA32 -a X64 -b $(RELEASE_STR) $(BUILD_STR) \
+		build -a IA32 -a X64 -b $(RELEASE_STR) $(BUILD_STR) -D BUILD_ARCH=X64 \
 			-y $(WORKSPACE)/Build/UefiPayloadPkgX64/UEFIPAYLOAD.txt; \
 		if [ ! -f $@ ]; then \
 			echo "Failed!"; \
@@ -299,37 +294,25 @@ $(WORKSPACE)/Build/UefiPayloadPkgX64/$(RELEASE_STR)_GCC/FV/UEFIPAYLOAD.fd: \
 		fi
 		echo "Success!"; \
 
-$(WORKSPACE)/Build/UefiPayloadPkgX64/UniversalPayload.elf: \
+$(WORKSPACE)/Build/UefiPayloadPkgIA32/UniversalPayload.fit: \
 	prep print
 	cd $(WORKSPACE); \
 		source $(EDK2_PATH)/edksetup.sh; \
 		echo -n "EDK2: Building... "; \
-		$(EDK2_PATH)/UefiPayloadPkg/UniversalPayloadBuild.sh -a IA32 -b $(RELEASE_STR) $(BUILD_STR)
+		$(EDK2_PATH)/UefiPayloadPkg/UniversalPayloadBuild.sh -a IA32 -b $(RELEASE_STR) $(BUILD_STR) --Fit --pcd gUefiPayloadPkgTokenSpaceGuid.PcdHandOffFdtEnable=TRUE
 		if [ ! -f $@ ]; then \
 			echo "Failed!"; \
 			exit 1; \
 		fi
 		echo "Success!"; \
 
-$(WORKSPACE)/Build/UefiPayloadPkgX64/$(RELEASE_STR)_GCC/IA32/UefiPayloadPkg/ShimLayer/ShimLayer/DEBUG/ShimLayer.dll: \
-		$(WORKSPACE)/Build/UefiPayloadPkgX64/UniversalPayload.elf prep
-	cd $(WORKSPACE)/Build/UefiPayloadPkgX64 && \
-		$(OBJCOPY) -I binary UniversalPayload.elf -O elf32-i386 -B i386 \
-			$(EDK2_PATH)/UefiPayloadPkg/ShimLayer/UniversalPayload.o; \
-	cd $(WORKSPACE) && \
-		source $(EDK2_PATH)/edksetup.sh; \
-		build -p UefiPayloadPkg/UefiPayloadPkg.dsc -b $(RELEASE_STR) -a IA32 -a X64 \
-			-m UefiPayloadPkg/ShimLayer/ShimLayer.inf \
-			-t COREBOOT -D BOOTLOADER=COREBOOT -D SHIMLAYER=TRUE \
-			-y $(WORKSPACE)/Build/UefiPayloadPkgX64/ShimLayer.txt
-
 UefiPayloadPkg: $(WORKSPACE)/Build/UefiPayloadPkgX64/$(RELEASE_STR)_GCC/FV/UEFIPAYLOAD.fd
 	mv $(WORKSPACE)/Build/UefiPayloadPkgX64/$(RELEASE_STR)_GCC/FV/UEFIPAYLOAD.fd \
 		../../../build/UEFIPAYLOAD.fd
 
-UniversalPayload: $(WORKSPACE)/Build/UefiPayloadPkgX64/$(RELEASE_STR)_GCC/IA32/UefiPayloadPkg/ShimLayer/ShimLayer/DEBUG/ShimLayer.dll
-	mv $(WORKSPACE)/Build/UefiPayloadPkgX64/$(RELEASE_STR)_GCC/IA32/UefiPayloadPkg/ShimLayer/ShimLayer/DEBUG/ShimLayer.dll \
-		../../../build/ShimmedUniversalPayload.elf
+UniversalPayload: $(WORKSPACE)/Build/UefiPayloadPkgIA32/UniversalPayload.fit
+	mv $(WORKSPACE)/Build/UefiPayloadPkgIA32/UniversalPayload.fit \
+		../../../build/UniversalPayload.fit
 
 clean:
 	test -d $(WORKSPACE) && (cd $(WORKSPACE); rm -rf Build; rm -f Conf/tools_def.txt) || exit 0

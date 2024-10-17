@@ -109,7 +109,8 @@ static struct fit_image_node *find_image_with_overlays(const char *name,
 
 static void image_node(struct device_tree_node *node, u32 addr_cells)
 {
-	size_t fit_fdt_size = ALIGN_UP(((struct fdt_header *)fit_bin_base)->totalsize, 4);
+	// FIXME: Need to fix EDK2 build script
+	size_t fit_fdt_size = 0;
 	struct fit_image_node *image = xzalloc(sizeof(*image));
 
 	image->compression = CBFS_COMPRESS_NONE;
