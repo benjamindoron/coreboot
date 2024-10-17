@@ -191,4 +191,11 @@ int cb_parse_arch_specific(struct cb_record *rec, struct sysinfo_t *info);
  */
 int cb_parse_header(void *addr, int len, struct sysinfo_t *info);
 
+/*
+ * Tries to parse the FDT (Flattened Device Tree) in a manner specified by the
+ * UPL (Universal Payload) Specification. It will fill up the sysinfo structure
+ * with information from the FDT. Return 0 on success and -1 on failure.
+ */
+int sysinfo_fill_from_upl_fdt(void *addr, struct sysinfo_t *info);
+
 #endif

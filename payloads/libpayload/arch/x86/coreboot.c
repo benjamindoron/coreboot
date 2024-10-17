@@ -70,13 +70,17 @@ int get_coreboot_info(struct sysinfo_t *info)
 	 * an invalid value. */
 	info->x86_rom_var_mtrr_index = -1;
 
-	ret = cb_parse_header(cb_header_ptr, 1, info);
+	if (CONFIG(LP_HANDOFF_UPL_DEVICETREE)) {
+		ret = sysinfo_fill_from_upl_fdt(cb_header_ptr, info);
+	} else {
+		// CONFIG_LP_COREBOOT_TABLES
+		ret = cb_parse_header(cb_header_ptr, 1, info);
 
-	if (ret)
-		ret = cb_parse_header(phys_to_virt(0x00000000), 0x1000, info);
+		if (ret)
+			ret = cb_parse_header(phys_to_virt(0x00000000), 0x1000, info);
 
-	if (ret)
-		ret = cb_parse_header(phys_to_virt(0x000f0000), 0x1000, info);
-
+		if (ret)
+			ret = cb_parse_header(phys_to_virt(0x000f0000), 0x1000, info);
+	}
 	return ret;
 }

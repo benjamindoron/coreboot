@@ -212,6 +212,24 @@ config PDCURSES
 
 endchoice
 
+choice
+	prompt "handoff to payload"
+	default HANDOFF_COREBOOT_TABLES
+
+config HANDOFF_COREBOOT_TABLES
+	bool "coreboot tables"
+	depends on LIBC
+	help
+	  coreboot tables
+
+config HANDOFF_UPL_DEVICETREE
+	bool "UPL FDT Handoff (experimental)"
+	depends on GPL && LIBC
+	help
+	  Creates a FDT handoff based on the Universal Payload specification.
+
+endchoice
+
 source "libcbfs/Kconfig"
 
 config LZMA

@@ -57,5 +57,8 @@ int cb_parse_arch_specific(struct cb_record *rec, struct sysinfo_t *info)
 
 int get_coreboot_info(struct sysinfo_t *info)
 {
-	return cb_parse_header(cb_header_ptr, 1, info);
+	if (CONFIG(LP_HANDOFF_UPL_DEVICETREE))
+		return sysinfo_fill_from_upl_fdt(cb_header_ptr, info);
+	else
+		return cb_parse_header(cb_header_ptr, 1, info);
 }
