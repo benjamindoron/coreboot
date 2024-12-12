@@ -9,6 +9,8 @@
 #include <console/console.h>
 #include <console/uart.h>
 #include <cpu/cpu.h>
+#include <device/device.h>
+#include <device/pci_def.h>
 #include <fit.h>
 #include <stdio.h>
 #include <version.h>
@@ -44,6 +46,7 @@ static int write_options_node(struct device_tree *tree)
 	dt_add_bin_prop(images_node, "ranges", NULL, 0);
 
 	// Add some UPL specific parameters
+	// - TODO: PCI enum done (after writing working PCI-RB node)
 	struct device_tree_node *params_node;
 	params_node = dt_find_node_by_path(tree, "/options/upl-params", NULL, NULL, 1);
 	if (!params_node) {
@@ -52,6 +55,7 @@ static int write_options_node(struct device_tree *tree)
 	}
 	dt_add_string_prop(params_node, "compatible", "upl");
 	dt_add_u32_prop(params_node, "addr-width", cpu_phys_address_size());
+	//dt_add_bin_prop(params_node, "pci-enum-done", NULL, 0);
 
 	// Add coreboot node, which contains information about coreboot like version and name
 	struct device_tree_node *cb_node;
@@ -89,6 +93,132 @@ void upl_fdt_add_secondary(struct device_tree *tree, const char *name, struct re
 		dt_add_reg_prop(image_node, &addr, &size, 1, addr_cells, size_cells);
 	}
 }
+
+#if 0
+
+#define NON_RELOCATABLE	BIT(31)
+#define IO_SPACE	BIT(24)
+#define MMIO_SPACE	BIT(25)
+#define MMIO64_SPACE	(BIT(24) | BIT(25))
+
+static void write_pci_rb_ranges(uint32_t *ranges, uint32_t *index,
+				uint32_t memory_space, u64 base, u64 limit)
+{
+	// type
+	ranges[(*index)++] = cpu_to_be32(NON_RELOCATABLE + memory_space);
+
+	// child-addr
+	uint32_t child_addr_index = *index;
+	ranges[(*index)++] = cpu_to_be32(base >> 32);
+	ranges[(*index)++] = cpu_to_be32(base & 0xffffffff);
+
+	// parent-addr
+	ranges[(*index)++] = ranges[child_addr_index];
+	ranges[(*index)++] = ranges[child_addr_index + 1];
+
+	// size
+	u64 size = limit - base + 1;
+	ranges[(*index)++] = cpu_to_be32(size >> 32);
+	ranges[(*index)++] = cpu_to_be32(size & 0xffffffff);
+}
+
+static int write_pci_rb_node(struct device_tree *tree)
+{
+	uint64_t addr, size;
+	char node_name[64];
+	int status;
+	struct device_tree_node *pci_rb_node, *rootport_node;
+	uint32_t pci_index = 0, reg_data_index = 0;
+
+	// #address-cells = 3, #size-cells = 2 is required per the PCI Bus Binding spec
+	u32 pci_addr_cells = 3, pci_size_cells = 2;
+	u32 host_addr_cells = 2, host_size_cells = 1;
+
+	addr = CONFIG_ECAM_MMCONF_BASE_ADDRESS;
+	status = snprintf(node_name, sizeof(node_name), "/pci-rb0@%llx", addr);
+	assert(status <= sizeof(node_name));
+	pci_rb_node = dt_find_node_by_path(tree, node_name, NULL, NULL, 1);
+	if (!pci_rb_node) {
+		printk(BIOS_ERR, "%s: %s node is null", __func__, node_name);
+		return -1;
+	}
+	dt_add_u32_prop(pci_rb_node, "#address-cells", pci_addr_cells);
+	dt_add_u32_prop(pci_rb_node, "#size-cells", pci_size_cells);
+	dt_add_string_prop(pci_rb_node, "compatible", "pci-rb");
+
+	size = CONFIG_ECAM_MMCONF_LENGTH;
+	dt_add_reg_prop(pci_rb_node, &addr, &size, 1, host_addr_cells, host_size_cells);
+
+	struct resource *res;
+	u64 io_base = -1, io_limit = 0;
+	u64 mmio_base = -1, mmio_limit = 0;
+	u64 mmio64_base = -1, mmio64_limit = 0;
+
+	uint8_t slot, func;
+	struct device *pci_devs = dev_find_next_pci_device(NULL);
+	while (pci_devs != NULL) {
+		/* Accumulate resources for root bridge */
+		for (res = pci_devs->resource_list; res; res = res->next) {
+			if (res->flags & IORESOURCE_FIXED)
+				continue;
+
+			if (res->flags & IORESOURCE_IO) {
+				io_base = MIN(io_base, res->base);
+				io_limit = MAX(io_limit, resource_end(res));
+			// This means memory strictly above 4 GiB, not 64-bit BARs
+			} else if (res->flags & IORESOURCE_MEM && resource_end(res) < 4ULL*GiB) {
+				mmio_base = MIN(mmio_base, res->base);
+				mmio_limit = MAX(mmio_limit, resource_end(res));
+			} else if (res->flags & IORESOURCE_MEM && resource_end(res) >= 4ULL*GiB) {
+				mmio64_base = MIN(mmio64_base, res->base);
+				mmio64_limit = MAX(mmio64_limit, resource_end(res));
+			}
+		}
+
+		/* Create root port node (FIXME: This is the wrong way) */
+		if (pci_devs->downstream) {
+			slot = PCI_SLOT(pci_devs->path.pci.devfn);
+			func = PCI_FUNC(pci_devs->path.pci.devfn);
+
+			status = snprintf(node_name, sizeof(node_name), "rootport%d@%d,%d", pci_index++, slot, func);
+			assert(status <= sizeof(node_name));
+			const char *node_names_root_port[] = { node_name, NULL };
+			rootport_node = dt_find_node(pci_rb_node, node_names_root_port, NULL, NULL, 1);
+			if (!rootport_node) {
+				printk(BIOS_ERR, "%s: %s node is null", __func__, node_name);
+				return -1;
+			}
+			dt_add_u32_prop(rootport_node, "#address-cells", pci_addr_cells);
+			dt_add_u32_prop(rootport_node, "#size-cells", pci_size_cells);
+			// FIXME: reg. This one is insane (all device addresses)
+			dt_add_bin_prop(rootport_node, "ranges", NULL, 0);
+		}
+
+		pci_devs = dev_find_next_pci_device(pci_devs);
+	}
+
+	status = snprintf(node_name, sizeof(node_name), "/pci-rb0@%llx/ranges", addr);
+	assert(status <= sizeof(node_name));
+	uint32_t *reg_data = xzalloc(21 * sizeof(uint32_t));
+	printk(BIOS_DEBUG, "IO base 0x%llx limit 0x%llx\n", io_base, io_limit);
+	write_pci_rb_ranges(reg_data, &reg_data_index, IO_SPACE, io_base, io_limit);
+	printk(BIOS_DEBUG, "MMIO base 0x%llx limit 0x%llx\n", mmio_base, mmio_limit);
+	write_pci_rb_ranges(reg_data, &reg_data_index, MMIO_SPACE, mmio_base, mmio_limit);
+	printk(BIOS_DEBUG, "MMIO64 base 0x%llx limit 0x%llx\n", mmio64_base, mmio64_limit);
+	write_pci_rb_ranges(reg_data, &reg_data_index, MMIO64_SPACE, mmio64_base, mmio64_limit);
+	dt_set_bin_prop_by_path(tree, node_name, (void *)reg_data, 21 * sizeof(uint32_t), 1);
+
+	// FIXME?
+	status = snprintf(node_name, sizeof(node_name), "/pci-rb0@%llx/bus-range", addr);
+	assert(status <= sizeof(node_name));
+	uint32_t *data = xzalloc(2 * sizeof(uint32_t));
+	data[0] = cpu_to_be32(0), data[1] = cpu_to_be32(pci_index - 1);
+	dt_set_bin_prop_by_path(tree, node_name, (void *)data, 2 * sizeof(uint32_t), 1);
+
+	return 0;
+}
+
+#endif
 
 static int write_isa_node(struct device_tree *tree)
 {
@@ -259,6 +389,9 @@ uintptr_t write_upl_fdt_table(uintptr_t rom_table_end)
 
 	if (write_options_node(tree))
 		goto error;
+
+	//if (write_pci_rb_node(tree))
+		//goto error;
 
 	if (write_isa_node(tree))
 		goto error;
