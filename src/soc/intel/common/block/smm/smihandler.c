@@ -15,6 +15,7 @@
 #include <device/pci_ops.h>
 #include <elog.h>
 #include <intelblocks/fast_spi.h>
+#include <intelblocks/msr.h>
 #include <intelblocks/oc_wdt.h>
 #include <intelblocks/pmclib.h>
 #include <intelblocks/smihandler.h>
@@ -335,6 +336,20 @@ static void soc_lock_gpios(void)
 		gpio_lock_pads(soc_gpios, soc_gpio_num);
 }
 
+static void enable_smm_code_access_check(void)
+{
+	msr_t smm_mca_cap = rdmsr(SMM_MCA_CAP_MSR);
+	if (!(smm_mca_cap.hi & SMM_CODE_ACCESS_CHK_MASK))
+		return;
+
+	/* Despite the prolific EDK2 implementation of this feature
+	   performing it on all cores, this is still a package-scoped MSR,
+	   per the Skylake Processor BWG, and tested on a Raptor Lake platform. */
+	msr_t smm_feature_control = rdmsr(SMM_FEATURE_CONTROL_MSR);
+	smm_feature_control.lo |= SMM_CODE_CHK_EN | SMM_FEATURE_CONTROL_LOCK;
+	wrmsr(SMM_FEATURE_CONTROL_MSR, smm_feature_control);
+}
+
 static void finalize(void)
 {
 	static int finalize_done;
@@ -344,6 +359,8 @@ static void finalize(void)
 		return;
 	}
 	finalize_done = 1;
+
+	enable_smm_code_access_check();
 
 	if (CONFIG(SPI_FLASH_SMM))
 		/* Re-init SPI driver to handle locked BAR */
