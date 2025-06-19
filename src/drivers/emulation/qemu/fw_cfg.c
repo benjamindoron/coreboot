@@ -243,6 +243,9 @@ unsigned long fw_cfg_acpi_tables(unsigned long start)
 	addrs = malloc(max * sizeof(*addrs));
 	fw_cfg_get(f.select, s, f.size);
 
+	/* clear all table memory */
+	memset((void *)start, 0, CONFIG_MAX_ACPI_TABLE_SIZE_KB * KiB);
+
 	current = start;
 	for (i = 0; i < max && s[i].command != 0; i++) {
 		void *cksum_data;
