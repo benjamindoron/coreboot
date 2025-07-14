@@ -2,8 +2,9 @@
 
 config CPU_INTEL_MODEL_2065X
 	bool
-	select HAVE_X86_64_SUPPORT
 	select ARCH_X86
+	select HAVE_X86_64_SUPPORT
+	select CPU_TSEGSIZE_MB_8
 	select SSE2
 	select UDELAY_TSC
 	select TSC_MONOTONIC_TIMER
@@ -15,10 +16,6 @@ config CPU_INTEL_MODEL_2065X
 	select CPU_INTEL_COMMON_VOLTAGE
 
 if CPU_INTEL_MODEL_2065X
-
-config SMM_TSEG_SIZE
-	hex
-	default 0x800000
 
 config SMM_RESERVED_SIZE
 	hex

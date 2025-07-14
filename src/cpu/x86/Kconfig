@@ -188,6 +188,79 @@ config SMM_TSEG
 
 if HAVE_SMI_HANDLER
 
+config CPU_TSEGSIZE_MB_0
+	bool
+config CPU_TSEGSIZE_MB_1
+	bool
+config CPU_TSEGSIZE_MB_2
+	bool
+config CPU_TSEGSIZE_MB_4
+	bool
+config CPU_TSEGSIZE_MB_8
+	bool
+config CPU_TSEGSIZE_MB_16
+	bool
+config CPU_TSEGSIZE_MB_32
+	bool
+
+choice
+	prompt "SMRAM Size (TSEG)"
+	default COREBOOT_TSEGSIZE_MB_1  if CPU_TSEGSIZE_MB_1
+	default COREBOOT_TSEGSIZE_MB_2  if CPU_TSEGSIZE_MB_2
+	default COREBOOT_TSEGSIZE_MB_4  if CPU_TSEGSIZE_MB_4
+	default COREBOOT_TSEGSIZE_MB_8  if CPU_TSEGSIZE_MB_8
+	default COREBOOT_TSEGSIZE_MB_16 if CPU_TSEGSIZE_MB_16
+	default COREBOOT_TSEGSIZE_MB_32 if CPU_TSEGSIZE_MB_32
+	help
+	  Select the size of coreboot's SMRAM you desire. You might
+	  increase this to fit more features inside SMM, such as an STM or payload MM.
+
+	  If unsure, leave this as is.
+
+config COREBOOT_TSEGSIZE_MB_1
+	bool "1 MB"
+	help
+	  Choose this option for a 1 MB TSEG.
+
+config COREBOOT_TSEGSIZE_MB_2
+	bool "2 MB"
+	help
+	  Choose this option for a 2 MB TSEG.
+
+config COREBOOT_TSEGSIZE_MB_4
+	bool "4 MB"
+	help
+	  Choose this option for a 4 MB TSEG.
+
+config COREBOOT_TSEGSIZE_MB_8
+	bool "8 MB"
+	help
+	  Choose this option for a 8 MB TSEG.
+
+config COREBOOT_TSEGSIZE_MB_16
+	bool "16 MB"
+	help
+	  Choose this option for a 16 MB TSEG.
+
+config COREBOOT_TSEGSIZE_MB_32
+	bool "32 MB"
+	help
+	  Choose this option for a 32 MB TSEG.
+
+endchoice
+
+# Map the config names to a hex value (bytes).
+config SMM_TSEG_SIZE
+	hex
+	# This should not be selectable by users, disabling SMM requires more config.
+	default 0x00000000 if CPU_TSEGSIZE_MB_0
+	default 0x00100000 if COREBOOT_TSEGSIZE_MB_1
+	default 0x00200000 if COREBOOT_TSEGSIZE_MB_2
+	default 0x00400000 if COREBOOT_TSEGSIZE_MB_4
+	default 0x00800000 if COREBOOT_TSEGSIZE_MB_8
+	default 0x01000000 if COREBOOT_TSEGSIZE_MB_16
+	default 0x02000000 if COREBOOT_TSEGSIZE_MB_32
+
 config SMM_MODULE_STACK_SIZE
 	hex
 	default 0x800 if ARCH_RAMSTAGE_X86_64

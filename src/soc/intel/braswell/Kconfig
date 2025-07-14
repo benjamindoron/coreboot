@@ -10,6 +10,7 @@ config SOC_INTEL_BRASWELL
 	select CACHE_MRC_SETTINGS
 	select SUPPORT_CPU_UCODE_IN_CBFS
 	select CPU_INTEL_TURBO_NOT_PACKAGE_SCOPED
+	select CPU_TSEGSIZE_MB_8
 	select HAVE_SMI_HANDLER
 	select PCIEXP_ASPM
 	select PCIEXP_CLK_PM
@@ -66,10 +67,6 @@ config ECAM_MMCONF_BUS_NUMBER
 config MAX_CPUS
 	int
 	default 4
-
-config SMM_TSEG_SIZE
-	hex
-	default 0x800000
 
 config SMM_RESERVED_SIZE
 	hex

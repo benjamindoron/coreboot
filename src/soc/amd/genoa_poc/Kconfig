@@ -13,6 +13,7 @@ config SOC_SPECIFIC_OPTIONS
 	select HAVE_ACPI_TABLES
 	select HAVE_X86_64_SUPPORT
 	select HAVE_SMI_HANDLER
+	select CPU_TSEGSIZE_MB_8
 	select SOC_AMD_COMMON
 	select SOC_AMD_COMMON_BLOCK_ACPI
 	select SOC_AMD_COMMON_BLOCK_ACPIMMIO
@@ -180,10 +181,6 @@ config CONSOLE_UART_BASE_ADDRESS
 	default 0xfedc9000 if UART_FOR_CONSOLE = 0
 	default 0xfedca000 if UART_FOR_CONSOLE = 1
 	default 0xfedce000 if UART_FOR_CONSOLE = 2
-
-config SMM_TSEG_SIZE
-	hex
-	default 0x800000
 
 config ACPI_SSDT_PSD_INDEPENDENT
 	bool "Allow core p-state independent transitions"
