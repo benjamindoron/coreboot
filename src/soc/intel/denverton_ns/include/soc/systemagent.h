@@ -70,6 +70,9 @@
 #define MCH_BAR_CORE_EXISTS_MASK 0x7164
 #define MCH_BAR_CORE_DISABLE_MASK 0x7168
 
+#define TPM_BASE_ADDRESS	0xFED40000
+#define TPM_SIZE		(64 * KiB)
+
 /* Device 0:4.0 PCI configuration space (RAS) */
 
 /* Device 0:5.0 PCI configuration space (RCEC) */

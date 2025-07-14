@@ -5,6 +5,9 @@
 
 #include <intelblocks/systemagent.h>
 
+#define TPM_BASE_ADDRESS	0xFED40000
+#define TPM_SIZE		(64 * KiB)
+
 /* RAPL Package Power Limit register under MCHBAR. */
 #define PUNIT_THERMAL_DEVICE_IRQ		0x700C
 #define PUINT_THERMAL_DEVICE_IRQ_VEC_NUMBER	0x18

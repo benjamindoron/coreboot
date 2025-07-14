@@ -1,13 +1,16 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 
+#include <arch/hpet.h>
+#include <arch/ioapic.h>
 #include <chip.h>
 #include <console/console.h>
-#include <device/device.h>
+#include <cpu/x86/lapic_def.h>
 #include <delay.h>
+#include <device/device.h>
 #include <device/pci.h>
 #include <device/pci_ops.h>
-#include <intelblocks/systemagent.h>
 #include <intelblocks/power_limit.h>
+#include <intelblocks/systemagent.h>
 #include <soc/iomap.h>
 #include <soc/soc_chip.h>
 #include <soc/systemagent.h>
@@ -29,6 +32,12 @@ void soc_add_fixed_mmio_resources(struct device *dev, int *index)
 		{ EPBAR, EP_BASE_ADDRESS, EP_BASE_SIZE, "EPBAR" },
 		{ REGBAR, REG_BASE_ADDRESS, REG_BASE_SIZE, "REGBAR" },
 		{ EDRAMBAR, EDRAM_BASE_ADDRESS, EDRAM_BASE_SIZE, "EDRAMBAR" },
+
+		/* first field (sa_mmio_descriptor.index) is not used, setting to 0: */
+		{ 0, TPM_BASE_ADDRESS, TPM_SIZE, "TPM" },
+		{ 0, IO_APIC_ADDR, APIC_SIZE, "IOAPIC" },
+		{ 0, HPET_BASE_ADDRESS, 0x1000, "HPET" },
+		{ 0, LAPIC_DEFAULT_BASE, APIC_SIZE, "LAPIC" },
 	};
 
 	sa_add_fixed_mmio_resources(dev, index, soc_fixed_resources,

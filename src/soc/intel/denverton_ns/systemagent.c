@@ -1,21 +1,24 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 
+#include <arch/hpet.h>
+#include <arch/ioapic.h>
 #include <cbmem.h>
 #include <console/console.h>
-#include <device/mmio.h>
-#include <device/pci_ops.h>
-#include <stdint.h>
+#include <cpu/x86/lapic_def.h>
 #include <delay.h>
 #include <device/device.h>
+#include <device/mmio.h>
 #include <device/pci.h>
 #include <device/pci_ids.h>
+#include <device/pci_ops.h>
+#include <stdint.h>
 #include <timer.h>
 
+#include <soc/acpi.h>
 #include <soc/iomap.h>
 #include <soc/pci_devs.h>
 #include <soc/ramstage.h>
 #include <soc/systemagent.h>
-#include <soc/acpi.h>
 
 #define _1ms 1
 #define WAITING_STEP 100
@@ -81,6 +84,12 @@ struct fixed_mmio_descriptor {
 struct fixed_mmio_descriptor mc_fixed_resources[] = {
 	{PCIEXBAR, 0, get_pcie_bar, "PCIEXBAR"},
 	{MCHBAR, MCH_BASE_SIZE, get_bar, "MCHBAR"},
+
+	/* first field (mc_fixed_resources.index) is not used, setting to 0: */
+	{ 0, TPM_BASE_ADDRESS, TPM_SIZE, "TPM" },
+	{ 0, IO_APIC_ADDR, APIC_SIZE, "IOAPIC" },
+	{ 0, HPET_BASE_ADDRESS, 0x1000, "HPET" },
+	{ 0, LAPIC_DEFAULT_BASE, APIC_SIZE, "LAPIC" },
 };
 
 /*

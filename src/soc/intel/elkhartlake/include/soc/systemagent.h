@@ -42,4 +42,7 @@ static const struct sa_mmio_descriptor soc_vtd_resources[] = {
 #define V_P2SB_CFG_HBDF_DEV	30
 #define V_P2SB_CFG_HBDF_FUNC	6
 
+#define TPM_BASE_ADDRESS	0xFED40000
+#define TPM_SIZE		(64 * KiB)
+
 #endif

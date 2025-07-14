@@ -6,8 +6,10 @@
  * Chapter number: 3
  */
 
+#include <arch/hpet.h>
 #include <arch/ioapic.h>
 #include <console/console.h>
+#include <cpu/x86/lapic_def.h>
 #include <cpu/x86/msr.h>
 #include <device/device.h>
 #include <device/pci.h>
@@ -41,7 +43,9 @@ void soc_add_fixed_mmio_resources(struct device *dev, int *index)
 		{ 0, CRAB_ABORT_BASE_ADDR, CRAB_ABORT_SIZE, "CRAB_ABORT" },
 		{ 0, TPM_BASE_ADDRESS, TPM_SIZE, "TPM" },
 		{ 0, LT_SECURITY_BASE_ADDR, LT_SECURITY_SIZE, "LT_SECURITY" },
-		{ 0, IO_APIC_ADDR, APIC_SIZE, "APIC" },
+		{ 0, IO_APIC_ADDR, APIC_SIZE, "IOAPIC" },
+		{ 0, HPET_BASE_ADDRESS, 0x1000, "HPET" },
+		{ 0, LAPIC_DEFAULT_BASE, APIC_SIZE, "LAPIC" },
 		// PCH_PRESERVERD covers:
 		// TraceHub SW BAR, SBREG, PMC MBAR, SPI BAR0, SerialIo BAR in ACPI mode
 		// eSPI LGMR BAR, eSPI2 SEGMR BAR, TraceHub MTB BAR, TraceHub FW BAR
