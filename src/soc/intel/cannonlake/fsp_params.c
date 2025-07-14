@@ -708,7 +708,7 @@ void platform_fsp_silicon_init_params_cb(FSPS_UPD *supd)
 	tconfig->PchLockDownBiosInterface = lockdown_by_fsp;
 	s_cfg->PchLockDownBiosLock = lockdown_by_fsp;
 	s_cfg->PchLockDownRtcMemoryLock = lockdown_by_fsp;
-	tconfig->SkipPamLock = !lockdown_by_fsp;
+	tconfig->SkipPamLock = CONFIG(EDK2_SUPPORT_CSM) || !lockdown_by_fsp;
 #if CONFIG(SOC_INTEL_COMETLAKE)
 	/*
 	 * Making this config "0" means FSP won't set the FLOCKDN bit

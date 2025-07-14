@@ -301,7 +301,7 @@ void platform_fsp_silicon_init_params_cb(FSPS_UPD *supd)
 		params->PchWriteProtectionEnable[0] = 1;
 		params->PchUnlockGpioPads = 0;
 		params->RtcMemoryLock = 1;
-		params->SkipPamLock = 0;
+		params->SkipPamLock = CONFIG(EDK2_SUPPORT_CSM);
 	}
 
 	/* Disable PAVP */

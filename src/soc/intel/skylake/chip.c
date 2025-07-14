@@ -408,6 +408,8 @@ void platform_fsp_silicon_init_params_cb(FSPS_UPD *supd)
 	 */
 	params->SpiFlashCfgLockDown = lockdown_by_fsp;
 
+	tconfig->SkipPamLock = CONFIG(EDK2_SUPPORT_CSM) || !lockdown_by_fsp;
+
 	/* FSP should let coreboot set subsystem IDs, which are read/write-once */
 	params->DefaultSvid = 0;
 	params->PchSubSystemVendorId = 0;
