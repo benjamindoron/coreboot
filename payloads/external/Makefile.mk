@@ -156,7 +156,11 @@ payloads/external/depthcharge/depthcharge/build/depthcharge.elf depthcharge: $(D
 
 # edk2
 
-$(obj)/UEFIPAYLOAD.fd: $(DOTCONFIG)
+ifeq ($(CONFIG_EDK2_SUPPORT_CSM),y)
+payloads/external/SeaBIOS/seabios/out/Csm16.bin: $(SEABIOS_TARGET_PATH)
+endif
+
+$(obj)/UEFIPAYLOAD.fd: $(DOTCONFIG) $(if $(CONFIG_EDK2_SUPPORT_CSM), payloads/external/SeaBIOS/seabios/out/Csm16.bin)
 	$(MAKE) -C payloads/external/edk2 UefiPayloadPkg \
 		HOSTCC="$(HOSTCC)" \
 		CC="$(HOSTCC)" \
@@ -210,7 +214,7 @@ $(obj)/UEFIPAYLOAD.fd: $(DOTCONFIG)
 		OBJCOPY_arm64=$(OBJCOPY_arm64) \
 		MFLAGS= MAKEFLAGS=
 
-$(obj)/UniversalPayload.fit: $(DOTCONFIG)
+$(obj)/UniversalPayload.fit: $(DOTCONFIG) $(if $(CONFIG_EDK2_SUPPORT_CSM), payloads/external/SeaBIOS/seabios/out/Csm16.bin)
 	$(MAKE) -C payloads/external/edk2 UniversalPayload \
 		HOSTCC="$(HOSTCC)" \
 		CC="$(HOSTCC)" \

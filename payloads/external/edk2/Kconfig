@@ -137,6 +137,14 @@ config EDK2_RELEASE
 
 endchoice
 
+config EDK2_SUPPORT_CSM
+	bool "Load SeaBIOS as a CSM"
+	default n
+	depends on ARCH_X86
+	select PAYLOAD_BUILD_SEABIOS
+	help
+	  SeaBIOS can be loaded as a CSM under TianoCore EDK2.
+
 config EDK2_BOOTSPLASH_FILE
 	string "edk2 Bootsplash path and filename"
 	default "Documentation/coreboot_logo.bmp"

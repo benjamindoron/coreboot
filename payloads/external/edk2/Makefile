@@ -239,6 +239,11 @@ gop_driver: $(EDK2_PATH)
 		cp $(top)/$(CONFIG_INTEL_GMA_VBT_FILE) $(EDK2_PATH)/UefiPayloadPkg/vbt.bin; \
 	fi; \
 
+csm: $(EDK2_PATH)
+	if [ -n "$(CONFIG_EDK2_SUPPORT_CSM)" ]; then \
+		cp $(top)/payloads/external/SeaBIOS/seabios/out/Csm16.bin $(EDK2_PATH)/OvmfPkg/Csm/Csm16/Csm16.bin; \
+	fi; \
+
 checktools:
 	echo -n "EDK2: Checking uuid-dev:"
 	echo "#include <uuid/uuid.h>" > libtest.c
@@ -276,7 +281,7 @@ print:
 		-e 's/s /Build:          Silent/' \
 		-e 's/t /Toolchain:      /'
 
-prep: $(EDK2_PATH) $(EDK2_PLATFORMS_PATH) clean checktools logo gop_driver
+prep: $(EDK2_PATH) $(EDK2_PLATFORMS_PATH) clean checktools logo gop_driver csm
 	cd $(WORKSPACE); \
 		source $(EDK2_PATH)/edksetup.sh; \
 		unset CC; $(MAKE) -C $(EDK2_PATH)/BaseTools 2>&1; \

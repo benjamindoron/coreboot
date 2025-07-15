@@ -77,6 +77,7 @@ config SEABIOS_VGA_COREBOOT
 	prompt "Include generated option rom that implements legacy VGA BIOS compatibility"
 	default y if !VENDOR_EMULATION
 	default y if COREDOOM_SECONDARY_PAYLOAD
+	depends on !EDK2_SUPPORT_CSM
 	depends on !VGA_ROM_RUN && (VGA_TEXT_FRAMEBUFFER || LINEAR_FRAMEBUFFER)
 	bool
 	help
@@ -87,6 +88,7 @@ config SEABIOS_VGA_COREBOOT
 
 config PAYLOAD_CONFIGFILE
 	string "SeaBIOS config file"
+	default "\$(top)/payloads/external/edk2/seabios_csm_defconfig" if EDK2_SUPPORT_CSM
 	default ""
 	help
 	  This option allows a platform to set Kconfig options for a basic
