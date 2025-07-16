@@ -14,7 +14,7 @@ STM_BUILD="release"
 endif
 
 
-all: build
+all: clean build
 
 build:
 	echo "STM - Build"
@@ -31,5 +31,7 @@ build:
 		-DBUILD=$(STM_BUILD); \
 	$(MAKE);
 
+clean:
+	test -d $(project_dir) && (cd $(project_dir); rm -rf Stm/build) || exit 0
 
-.PHONY: build
+.PHONY: clean build
