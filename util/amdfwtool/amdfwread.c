@@ -370,8 +370,8 @@ static int list_amdfw_psp_dir(FILE *fw, const embedded_firmware *fw_header)
 {
 	uint32_t psp_offset = 0;
 
-	/* 0xffffffff indicates that the offset is in new_psp_directory */
-	if (fw_header->psp_directory != 0xffffffff)
+	/* These values indicate that the offset is in new_psp_directory */
+	if (fw_header->psp_directory != 0xffffffff && fw_header->psp_directory != 0)
 		psp_offset = fw_header->psp_directory;
 	else
 		psp_offset = fw_header->new_psp_directory;
